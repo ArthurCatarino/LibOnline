@@ -26,5 +26,3 @@ Regra: O conjunto de requisitos deve ser completo e consistente.
     Justificativa: Requisitos incompletos resultam em funcionalidades ausentes no produto final, enquanto inconsistências levam a conflitos de design e implementação, gerando erros e complexidade desnecessária.
 
     Exemplo de Aplicação: Se um requisito diz "O sistema deve permitir apenas um empréstimo por leitor", e outro diz "Leitores VIP podem ter até 3 empréstimos simultâneos", há uma inconsistência que precisa ser resolvida. A completude seria garantir que todas as operações de CRUD, os perfis de usuário e suas permissões, bem como as regras de negócio dos empréstimos e reservas, estejam descritas.
-
-Ao seguir estas diretrizes, você garantirá que seu documento de requisitos seja um artefato de alta qualidade, que servirá como base sólida para as próximas fases do seu projeto de Engenharia de Software.
