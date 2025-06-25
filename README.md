@@ -20,7 +20,7 @@ Essa solução não só aumentará a eficiência e a precisão das operações i
 
 Frontend: HTML, CSS, Javascript, React
 
-Backend: Java, Spring Boot
+Backend: Javascript, Express
 
 Banco de Dados: MySQL
 
