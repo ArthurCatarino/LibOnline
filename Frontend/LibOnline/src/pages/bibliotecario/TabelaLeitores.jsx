@@ -61,7 +61,7 @@ const TabelaLeitores = () => {
     );
   };
 
-  const handleMoreInfo = (leitor) => navigate(`/leitor/${leitor.id}`);
+  const handleMoreInfo = (leitor) => navigate(`/leitor/${leitor.id}/perfil`);
 
   return (
     <div className="min-h-screen bg-[#2D3748] font-sans text-gray-200">

@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Modal from "./components/Modal";
+import Modal from "../../components/Modal";
 import Header from "./components/Header";
 
 const mockLivros = [

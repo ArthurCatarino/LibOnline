@@ -9,7 +9,7 @@ import {
   TrashIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/solid";
-import Modal from "./components/Modal";
+import Modal from "../../components/Modal";
 import {
   FormEmprestarExemplar,
   FormEditarEmprestimo,
