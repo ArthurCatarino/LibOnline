@@ -1,11 +1,8 @@
-require("dotenv").config({ path: "../variaveis.env" });
-const express = require("express");
-const routes = require("./routes");
+require('dotenv').config();
+const app = require('./app');
 
-const server = express();
-server.use(express.json());
-server.use(routes);
+const PORT = process.env.PORT
 
-server.listen(process.env.PORT, () => {
-  console.log("Server ligado na porta " + process.env.PORT );
+app.listen(PORT, () => {
+  console.log("Server ligado na porta " + PORT);
 });
