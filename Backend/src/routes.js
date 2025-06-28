@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const controllerLivros = require("./controllers/controllerLivros")
 const controllerEmprestimo = require("./controllers/controllerEmprestimo")
+const controllerLogin = require("./controllers/controllerLogin")
 
 // testes
 router.get("/teste",controllerEmprestimo.teste)
@@ -20,5 +21,8 @@ router.get("/buscaEmprestimo/:id",controllerEmprestimo.verEmprestimoUnico)
 router.put("/devolverEmprestimo/:id",controllerEmprestimo.devolverEmprestimo)
 router.put("/renovarEmprestimo/:id",controllerEmprestimo.renovarEmprestimo)
 router.delete("/deletarEmprestimo/:id",controllerEmprestimo.deletarEmprestimo)
+
+//login
+router.post("/login",controllerLogin.login)
 
 module.exports = router;
