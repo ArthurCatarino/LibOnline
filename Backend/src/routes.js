@@ -17,7 +17,8 @@ router.delete("/deletarLivro/:id",controllerLivros.deletar)
 router.post("/criarEmprestimo",controllerEmprestimo.criarEmprestimo)
 router.get("/listaEmprestimos",controllerEmprestimo.listarEmprestimos)
 router.get("/buscaEmprestimo/:id",controllerEmprestimo.verEmprestimoUnico)
-router.post("/editarEmprestimo/:id",controllerEmprestimo.editarEmprestimo)
+router.put("/devolverEmprestimo/:id",controllerEmprestimo.devolverEmprestimo)
+router.put("/renovarEmprestimo/:id",controllerEmprestimo.renovarEmprestimo)
 router.delete("/deletarEmprestimo/:id",controllerEmprestimo.deletarEmprestimo)
 
 module.exports = router;

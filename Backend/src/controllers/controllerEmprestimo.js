@@ -84,18 +84,18 @@ async function verEmprestimoUnico (req,res) {
   }
 }
 
-async function editarEmprestimo (req,res) {
+async function devolverEmprestimo (req,res) {
   id = req.params.id
   try{
   
   emprestimo = await servicesEmprestimos.buscaEmprestimoUnico(id)
-  if(!emprestimo[0]){
-    res.status(400).json({mensagem:"Id invalido"})
+  verifica = verificaEmprestimo(emprestimo[0])
+  if(verifica) {
+    res.status(400).json({mensagem:verifica})
     return
   }
-
-  await servicesEmprestimos.editarEmprestimo(id)
-  res.status(200).json({mensagem:"Emprestimo editado com sucesso"})
+  await servicesEmprestimos.devolverEmprestimo(id)
+  res.status(200).json({mensagem:"Emprestimo devolvido com sucesso"})
 
   }catch(error){
     console.error(error)
@@ -119,6 +119,26 @@ async function deletarEmprestimo (req,res) {
   }
 }
 
+async function renovarEmprestimo (req,res) {
+  id = req.params.id
+  try{
+  
+  emprestimo = await servicesEmprestimos.buscaEmprestimoUnico(id)
+  verifica = verificaEmprestimo(emprestimo[0])
+  if(verifica) {
+    res.status(400).json({mensagem:verifica})
+    return
+  }
+
+
+  await servicesEmprestimos.renovarEmprestimo(id)
+  res.status(200).json({mensagem:"Emprestimo renovado com sucesso"})
+
+  }catch(error){
+    console.error(error)
+    res.status(500).json({mensagem:"Erro ao renovar emprestimo",erro:error})
+  }
+}
 
 function verificaIds(idFuncionario,idUsuario,idExemplar) {
   if(!idFuncionario) {
@@ -132,4 +152,14 @@ function verificaIds(idFuncionario,idUsuario,idExemplar) {
   }  
 }
 
-module.exports = {criarEmprestimo,verEmprestimoUnico,listarEmprestimos,editarEmprestimo,deletarEmprestimo,teste}
+function verificaEmprestimo(emprestimo) {
+  if(!emprestimo){
+    return "id invalido"
+  }
+  if(emprestimo.statusEmprestimo != "ativo") {
+    return "Este emprestimo nao esta ativo"
+  }
+
+}
+
+module.exports = {criarEmprestimo,verEmprestimoUnico,listarEmprestimos,renovarEmprestimo,deletarEmprestimo,teste,devolverEmprestimo}

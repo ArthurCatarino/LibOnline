@@ -55,7 +55,7 @@ return new Promise((aceito,rejeitado)=>{
   })
 }
 
-async function editarEmprestimo(id) {
+async function devolverEmprestimo(id) {
 return new Promise((aceito,rejeitado)=>{
     const query = "UPDATE libonline.emprestimo SET dataDevolucaoReal=current_timestamp() , statusEmprestimo='devolvido'  WHERE idEmprestimo=?;"
     db.query(query,id,(error,results)=>{
@@ -81,5 +81,18 @@ async function deletarEmprestimo(id) {
   })
 }
 
+async function renovarEmprestimo(id) {
+return new Promise((aceito,rejeitado)=>{
+    const query = "UPDATE libonline.emprestimo SET dataDevolucaoPrevista =DATE_ADD(dataDevolucaoPrevista, INTERVAL 20 DAY) WHERE idEmprestimo=?;"
+    db.query(query,id,(error,results)=>{
+      if(error){
+        rejeitado(error)
+        return
+      }
+      aceito(results)
+    })
+  })
+}
 
-module.exports = {criarEmprestimo,buscaEmprestimoUnico,listaEmprestimos,buscaEmprestimoUsuarioExemplar,editarEmprestimo,deletarEmprestimo}
+
+module.exports = {criarEmprestimo,buscaEmprestimoUnico,listaEmprestimos,buscaEmprestimoUsuarioExemplar,devolverEmprestimo,deletarEmprestimo,renovarEmprestimo}
