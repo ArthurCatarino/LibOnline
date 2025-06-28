@@ -15,6 +15,7 @@ import TabelaLeitores from "./pages/bibliotecario/TabelaLeitores";
 import PerfilLeitor from "./pages/bibliotecario/PerfilLeitor";
 import TabelaLivros from "./pages/bibliotecario/TabelaLivros";
 import TabelaExemplares from "./pages/bibliotecario/TabelaExemplares";
+import LeitorLayout from "./pages/leitor/LeitorLayout";
 
 function App() {
   return (
@@ -22,16 +23,15 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
         <Route path="/" element={<Login />} />
-
         <Route path="/leitores" element={<TabelaLeitores />} />
+        <Route path="/leitor/:leitorId/perfil" element={<PerfilLeitor />} />
 
-        <Route path="/leitor/:leitorId" element={<PerfilLeitor />}>
+        <Route path="/leitor/:leitorId" element={<LeitorLayout />}>
           <Route path="emprestimos" element={<EmprestimosLeitor />} />
           <Route path="situacao" element={<SituacaoLeitor />} />
         </Route>
-        
+
         <Route path="/livros" element={<TabelaLivros />} />
         <Route
           path="/livro/:livroId/tabela-exemplares"
