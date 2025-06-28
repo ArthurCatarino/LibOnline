@@ -78,7 +78,6 @@ async function deletar(req,res) {
   id = req.params.id
   try{
     livro = await servicesLivros.listagemUnica(id)
-    console.log(livro)
     if(!livro[0]) {
       return res.status(400).json({mensagem:"Id do livro nao encontrado"})
     }
