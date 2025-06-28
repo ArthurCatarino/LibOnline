@@ -3,7 +3,7 @@ const router = express.Router();
 const controllerLivros = require("./controllers/controllerLivros")
 const controllerEmprestimo = require("./controllers/controllerEmprestimo")
 const controllerLogin = require("./controllers/controllerLogin")
-const controllerUsuario = require("./controllers/controllerUsuarios")
+const controllerGerais = require("./controllers/controllerGerais")
 
 // testes
 router.get("/teste",controllerEmprestimo.teste)
@@ -24,7 +24,9 @@ router.put("/renovarEmprestimo/:id",controllerEmprestimo.renovarEmprestimo)
 router.delete("/deletarEmprestimo/:id",controllerEmprestimo.deletarEmprestimo)
 
 //Rotas gerias
-router.get("/listarUsuarios",controllerUsuario.listaUsuarios)
+router.get("/listarUsuarios",controllerGerais.listaUsuarios)
+router.get("/listarExemplares",controllerGerais.listaExemplares)
+router.get("/listarFuncionarios",controllerGerais.listaFuncionarios)
 
 //login
 router.post("/login",controllerLogin.login)
