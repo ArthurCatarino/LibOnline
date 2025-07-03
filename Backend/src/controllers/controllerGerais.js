@@ -1,4 +1,4 @@
-const servicesGerais = require("../services/servicesGerais")
+const persistanceGerais = require("../persistance/persistanceGerais")
 
 async function listaUsuarios(req,res) {
   try {
@@ -26,7 +26,6 @@ async function listaFuncionarios(req,res){
    try {
     funcionarios = await servicesGerais.listaFuncionarios()
     res.status(200).json(funcionarios)
-    
   } catch (error) {
     console.log(error)
     res.status(500).json({mensagem:"Erro ao listar funcionarios",erro:error})
