@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 import {
   MagnifyingGlassIcon,
   ChevronLeftIcon,
@@ -15,100 +16,165 @@ import {
   FormEditarEmprestimo,
   FormAdicionarExemplar,
 } from "./components/FormulariosModais";
+import { formatarData } from "../../utils/dateFormatter";
+import { normalizarTexto } from "../../utils/normalizarTexto";
 import Header from "./components/Header";
-
-const mockLivros = [
-  {
-    id: "9788535914849",
-    titulo: "Dom Casmurro",
-    autor: "Machado de Assis",
-    genero: "Romance",
-    exemplares: 5,
-  },
-];
-
-const mockLeitores = [
-  { id: "012225", nome: "André Duarte Gomes" },
-  { id: "012226", nome: "João Victor De Paula" },
-  { id: "012227", nome: "Kaique Henrique Santos" },
-];
-
-const mockExemplares = [
-  {
-    id: "154234",
-    livroId: "9788535914849",
-    dataCadastro: "10/05/2025",
-    status: "Emprestado",
-    dataDevolucao: "27/06/2025",
-    reservadoPor: ["012227"],
-  },
-  {
-    id: "154235",
-    livroId: "9788535914849",
-    dataCadastro: "21/05/2025",
-    status: "Disponível",
-    dataDevolucao: null,
-    reservadoPor: [],
-  },
-  {
-    id: "154236",
-    livroId: "9788535914849",
-    dataCadastro: "17/05/2025",
-    status: "Disponível",
-    dataDevolucao: null,
-    reservadoPor: [],
-  },
-  {
-    id: "154237",
-    livroId: "9788535914849",
-    dataCadastro: "04/05/2025",
-    status: "Emprestado",
-    dataDevolucao: "15/07/2025",
-    reservadoPor: ["012225", "012226"],
-  },
-  {
-    id: "154238",
-    livroId: "9788535914849",
-    dataCadastro: "28/05/2025",
-    status: "Danificado",
-    dataDevolucao: null,
-    reservadoPor: [],
-  },
-];
 
 const getStatusClass = (status) => {
   switch (status) {
-    case "Disponível":
+    case "disponivel":
       return "text-green-400";
-    case "Emprestado":
+    case "emprestado":
       return "text-yellow-400";
-    case "Danificado":
+    case "danificado":
       return "text-red-500";
     default:
       return "text-gray-300";
   }
 };
 
+const apiClient = axios.create({
+  baseURL: "http://localhost:3001",
+});
+
 const TabelaExemplares = () => {
   const { livroId } = useParams();
 
+  // Estados da UI
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Estados dos dados
+  const [livro, setLivro] = useState(null);
+  const [leitores, setLeitores] = useState([]); // Para os dropdowns
+  const [exemplares, setExemplares] = useState([]);
+  const [searchValue, setSearchValue] = useState("");
+
+  // Estados das Modais
   const [isLoanModalOpen, setLoanModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isReservationsModalOpen, setReservationsModalOpen] = useState(false);
   const [isAddModalOpen, setAddModalOpen] = useState(false);
-
   const [selectedExemplar, setSelectedExemplar] = useState(null);
-  const [livro, setLivro] = useState(null);
 
-  const [exemplares, setExemplares] = useState([]);
-  const [SearchValue, setSearchValue] = useState();
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      // Faz chamadas de API em paralelo para otimizar
+      const [livroRes, exemplaresRes, emprestimosRes, leitoresRes] =
+        await Promise.all([
+          apiClient.get("/listagemLivros"),
+          apiClient.get("/listarExemplares"),
+          apiClient.get("/listaEmprestimos"),
+          apiClient.get("/listarUsuarios"),
+        ]);
+
+      const todosExemplares = exemplaresRes.data;
+      const todosEmprestimos = emprestimosRes.data;
+      const todosLeitores = leitoresRes.data;
+
+      const exemplaresFiltrados = todosExemplares.filter(
+        (exemplar) => exemplar.idLivro == livroId
+      );
+
+      const exemplaresDoLivro = exemplaresFiltrados.map((exemplar) => {
+        // Encontra o empréstimo correspondente a este exemplar, se houver
+        const emprestimoInfo = todosEmprestimos.find(
+          (e) =>
+            e.idExemplar === exemplar.idExemplar &&
+            normalizarTexto(e.statusEmprestimo) !== "devolvido"
+        );
+
+        let nomeDoLeitor = null;
+        // Se encontrou um empréstimo, busca o nome do leitor
+        if (emprestimoInfo) {
+          const leitorInfo = todosLeitores.find(
+            (l) => l.idUsuario === emprestimoInfo.idUsuario
+          );
+          if (leitorInfo) {
+            nomeDoLeitor = leitorInfo.nome;
+          }
+        }
+
+        return {
+          id: exemplar.idExemplar,
+          registro: exemplar.numeroRegistro,
+          status: normalizarTexto(exemplar.tipo),
+          // Se houver um empréstimo, usa a data dele, senão, null
+          dataDevolucao: emprestimoInfo
+            ? formatarData(emprestimoInfo.dataDevolucaoPrevista)
+            : null,
+          nomeLeitor: nomeDoLeitor,
+          reservadoPor: [],
+          emprestimoId: emprestimoInfo ? emprestimoInfo.idEmprestimo : null,
+        };
+      });
+
+      const livroDosExemplares = livroRes.data.find(
+        (livro) => livro.id == livroId
+      );
+
+      setLivro(livroDosExemplares);
+      setLeitores(leitoresRes.data);
+      setExemplares(exemplaresDoLivro);
+    } catch (err) {
+      setError("Falha ao carregar os dados. Tente novamente mais tarde.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Busca de dados inicial com Axios
+  useEffect(() => {
+    fetchData();
+  }, [livroId]);
+
+  // Funções CRUD com API
+  const handleAddExemplar = async (novoExemplar) => {
+    try {
+      await axios.post(`/api/livros/${livroId}/exemplares`, novoExemplar);
+
+      fetchData();
+      handleCloseModals();
+    } catch (err) {
+      alert("Erro ao adicionar exemplar.");
+      console.error(err);
+    }
+  };
+
+  const handleUpdateExemplar = async (exemplarId, dados) => {
+    try {
+      await axios.put(`/api/exemplares/${exemplarId}`, dados);
+
+      fetchData();
+      handleCloseModals();
+    } catch (err) {
+      alert("Erro ao atualizar empréstimo.");
+      console.error(err);
+    }
+  };
+
+  const handleExcluirExemplar = async (exemplar) => {
+    if (window.confirm("Tem certeza que deseja excluir este exemplar?")) {
+      try {
+        if (exemplar.status == "emprestado") {
+          await apiClient.delete(`/deletarEmprestimo/${exemplar.emprestimoId}`);
+        }
+        fetchData();
+        alert(`Exemplar ${exemplar.id} excluido com sucesso!`);
+      } catch (err) {
+        alert("Erro ao excluir exemplar.");
+        console.error(err);
+      }
+    }
+  };
 
   const handleSearch = (value) => {
     if (!value) {
-      setExemplares(mockExemplares);
-      return;
+      fetchData();
     }
-    const exemplaresFiltrados = exemplares.filter((e) => e.id.includes(value));
+    const exemplaresFiltrados = exemplares.filter((e) => e.id == value);
     setExemplares(exemplaresFiltrados);
   };
 
@@ -116,17 +182,14 @@ const TabelaExemplares = () => {
     setSelectedExemplar(exemplar);
     setLoanModalOpen(true);
   };
-
   const handleOpenEditModal = (exemplar) => {
     setSelectedExemplar(exemplar);
     setEditModalOpen(true);
   };
-
   const handleOpenReservationsModal = (exemplar) => {
     setSelectedExemplar(exemplar);
     setReservationsModalOpen(true);
   };
-
   const handleOpenAddModal = () => {
     setAddModalOpen(true);
   };
@@ -139,32 +202,22 @@ const TabelaExemplares = () => {
     setSelectedExemplar(null);
   };
 
-  const handleAddExemplar = (novoExemplar) => {
-    // Adiciona o novo exemplar em ambas as listas para consistência
-    setExemplares([...exemplares, novoExemplar]);
-    setExemplares([...exemplares, novoExemplar]);
-    handleCloseModals();
-  };
-
-  const handleExcluirExemplar = (id) => {
-    const novosExemplaresDoLivro = exemplares.filter((e) => e.id !== id);
-    setExemplares(novosExemplaresDoLivro);
-  };
-
-  useEffect(() => {
-    const livroEncontrado = mockLivros.find((l) => l.id === livroId);
-    setLivro(livroEncontrado);
-
-    const exemplaresDoLivro = mockExemplares.filter(
-      (e) => e.livroId === livroId
+  if (loading)
+    return (
+      <div className="p-8 text-center bg-[#2D3748] text-white font-extrabold min-h-screen flex items-center justify-center">
+        Carregando...
+      </div>
     );
-    setExemplares(exemplaresDoLivro);
-  }, [livroId]);
+  if (error)
+    return (
+      <div className="p-8 text-center bg-[#2D3748] text-red-400 font-extrabold min-h-screen flex items-center justify-center">
+        {error}
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-[#2D3748] font-sans text-gray-200">
       <Header active="livros" />
-
       <main className="p-8">
         <div className="text-center">
           <h3 className="text-xl font-semibold text-gray-400 uppercase">
@@ -183,12 +236,13 @@ const TabelaExemplares = () => {
                 type="text"
                 placeholder="Buscar por identificação do exemplar..."
                 className="w-full bg-[#2D3748] text-gray-200 border-transparent rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-white transition"
+                value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
               />
             </div>
             <button
               className="bg-[#2D3748] font-bold py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
-              onClick={() => handleSearch(SearchValue)}
+              onClick={() => handleSearch(searchValue)}
             >
               Buscar
             </button>
@@ -202,10 +256,13 @@ const TabelaExemplares = () => {
                     Identificação
                   </th>
                   <th className="p-4 font-bold uppercase tracking-wider">
-                    Data de Cadastro
+                    Registro
                   </th>
                   <th className="p-4 font-bold uppercase tracking-wider">
                     Status
+                  </th>
+                  <th className="p-4 font-bold uppercase tracking-wider">
+                    Emprestado para
                   </th>
                   <th className="p-4 font-bold uppercase tracking-wider">
                     Devolução
@@ -225,7 +282,7 @@ const TabelaExemplares = () => {
                     className="border-t border-gray-600 hover:bg-[#4A5568]/40 transition-colors"
                   >
                     <td className="p-4 font-mono">{exemplar.id}</td>
-                    <td className="p-4 font-mono">{exemplar.dataCadastro}</td>
+                    <td className="p-4 font-mono">{exemplar.registro}</td>
                     <td
                       className={`p-4 font-semibold ${getStatusClass(
                         exemplar.status
@@ -233,12 +290,12 @@ const TabelaExemplares = () => {
                     >
                       {exemplar.status}
                     </td>
+                    <td className="p-4">{exemplar.nomeLeitor || "---"}</td>
                     <td className="p-4 font-mono">
                       {exemplar.dataDevolucao || "---"}
                     </td>
                     <td className="p-4 text-center">
-                      {exemplar.status !== "Disponível" &&
-                      exemplar.status != "Danificado" &&
+                      {exemplar.status !== "disponivel" &&
                       exemplar.reservadoPor?.length > 0 ? (
                         <button
                           onClick={() => handleOpenReservationsModal(exemplar)}
@@ -255,26 +312,24 @@ const TabelaExemplares = () => {
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex justify-center items-center gap-3">
-                        {exemplar.status === "Disponível" ? (
+                        {exemplar.status === "disponivel" ? (
                           <button
                             onClick={() => handleOpenLoanModal(exemplar)}
                             className="bg-green-600/80 hover:bg-green-500 py-1 px-3 rounded-md text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer"
                           >
-                            <PlusIcon className="h-4 w-4" />
-                            Emprestar
+                            <PlusIcon className="h-4 w-4" /> Emprestar
                           </button>
                         ) : (
                           <button
                             onClick={() => handleOpenEditModal(exemplar)}
                             className="bg-blue-600/80 hover:bg-blue-500 py-1 px-3 rounded-md text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer"
                           >
-                            <PencilSquareIcon className="h-4 w-4" />
-                            Editar
+                            <PencilSquareIcon className="h-4 w-4" /> Editar
                           </button>
                         )}
                         <button
+                          onClick={() => handleExcluirExemplar(exemplar)}
                           className="bg-red-600/80 hover:bg-red-500 p-2 rounded-md transition-colors cursor-pointer"
-                          onClick={() => handleExcluirExemplar(exemplar.id)}
                         >
                           <TrashIcon className="h-4 w-4" />
                         </button>
@@ -286,32 +341,30 @@ const TabelaExemplares = () => {
             </table>
           </div>
         </div>
-        <div className="h-fit items-center inline">
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={handleOpenAddModal}
-              className="bg-green-600 hover:bg-green-500 font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <PlusIcon className="h-6 w-6" />
-              Adicionar Exemplar
-            </button>
-          </div>
 
-          <nav className="flex justify-center items-center gap-4 h-fit">
-            <button
-              className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
-              disabled
-            >
-              <ChevronLeftIcon className="h-6 w-6" />
-            </button>
-            <span className="text-xl font-bold px-4 py-2 bg-[#2D3748] rounded-md">
-              1
-            </span>
-            <button className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 transition-colors cursor-pointer">
-              <ChevronRightIcon className="h-6 w-6" />
-            </button>
-          </nav>
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={handleOpenAddModal}
+            className="bg-green-600 hover:bg-green-500 font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
+          >
+            <PlusIcon className="h-6 w-6" /> Adicionar Exemplar
+          </button>
         </div>
+
+        <nav className="mt-6 flex justify-center items-center gap-4">
+          <button
+            className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
+            disabled
+          >
+            <ChevronLeftIcon className="h-6 w-6" />
+          </button>
+          <span className="text-xl font-bold px-4 py-2 bg-[#2D3748] rounded-md">
+            1
+          </span>
+          <button className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 transition-colors cursor-pointer">
+            <ChevronRightIcon className="h-6 w-6" />
+          </button>
+        </nav>
       </main>
 
       <Modal
@@ -323,6 +376,7 @@ const TabelaExemplares = () => {
           exemplar={selectedExemplar}
           livro={livro}
           onClose={handleCloseModals}
+          onEmprestar={handleUpdateExemplar}
         />
       </Modal>
 
@@ -335,6 +389,21 @@ const TabelaExemplares = () => {
           exemplar={selectedExemplar}
           livro={livro}
           onClose={handleCloseModals}
+          todosExemplaresDoLivro={exemplares}
+          onUpdate={handleUpdateExemplar}
+          leitores={leitores}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={handleCloseModals}
+        title={`Adicionar Novo Exemplar para: ${livro?.titulo}`}
+      >
+        <FormAdicionarExemplar
+          livro={livro}
+          onClose={handleCloseModals}
+          onAdd={handleAddExemplar}
         />
       </Modal>
       <Modal
@@ -346,7 +415,7 @@ const TabelaExemplares = () => {
           {selectedExemplar?.reservadoPor?.length > 0 ? (
             <ul className="space-y-2">
               {selectedExemplar.reservadoPor.map((leitorId) => {
-                const leitorInfo = mockLeitores.find((l) => l.id === leitorId);
+                const leitorInfo = leitores.find((l) => l.id === leitorId);
                 return (
                   <li
                     key={leitorId}
@@ -363,17 +432,6 @@ const TabelaExemplares = () => {
             </p>
           )}
         </div>
-      </Modal>
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={handleCloseModals}
-        title={`Adicionar Novo Exemplar para: ${livro?.titulo}`}
-      >
-        <FormAdicionarExemplar
-          livro={livro}
-          onClose={handleCloseModals}
-          onAddExemplar={handleAddExemplar}
-        />
       </Modal>
     </div>
   );

@@ -10,7 +10,7 @@ export const FormEmprestarExemplar = ({ exemplar, livro, onClose }) => {
   const calcularDataDevolucao = () => {
     const data = new Date();
     data.setDate(data.getDate() + 20);
-    return data.toLocaleDateString("pt-BR"); 
+    return data.toLocaleDateString("pt-BR");
   };
 
   const handleSubmit = (event) => {
@@ -74,7 +74,16 @@ export const FormEmprestarExemplar = ({ exemplar, livro, onClose }) => {
 };
 
 // --- Formulário para Editar um Empréstimo ---
-export const FormEditarEmprestimo = ({ exemplar, livro, onClose }) => {
+export const FormEditarEmprestimo = ({
+  exemplar,
+  livro,
+  onClose,
+  todosExemplaresDoLivro,
+}) => {
+  const exemplaresDisponiveisParaTroca = todosExemplaresDoLivro.filter(
+    (e) => e.status === "Disponível" || e.id === exemplar?.id
+  );
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const novaData = event.target.dataDevolucao.value;
@@ -100,6 +109,51 @@ export const FormEditarEmprestimo = ({ exemplar, livro, onClose }) => {
         <p>
           <span className="font-bold">Livro:</span> {livro.titulo}
         </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Campo para Mudar o Leitor */}
+        <div className="mb-4">
+          <label
+            htmlFor="leitor"
+            className="block text-gray-300 text-sm font-bold mb-2"
+          >
+            Atribuir a outro leitor:
+          </label>
+          <select
+            id="leitor"
+            name="leitor"
+            defaultValue={exemplar?.leitorId} // Padrão é o leitor atual
+            className="w-full bg-[#2D3748] text-gray-200 border-transparent rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-white cursor-pointer"
+          >
+            {mockLeitores.map((leitor) => (
+              <option key={leitor.id} value={leitor.id}>
+                {leitor.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Campo para Mudar o Exemplar */}
+        <div className="mb-4">
+          <label
+            htmlFor="exemplar"
+            className="block text-gray-300 text-sm font-bold mb-2"
+          >
+            Trocar pelo exemplar:
+          </label>
+          <select
+            id="exemplar"
+            name="exemplar"
+            defaultValue={exemplar?.id} // Padrão é o exemplar atual
+            className="w-full bg-[#2D3748] text-gray-200 border-transparent rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-white cursor-pointer"
+          >
+            {exemplaresDisponiveisParaTroca.map((e) => (
+              <option key={e.id} value={e.id}>
+                ID: {e.id} ({e.status})
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="mb-4">
@@ -193,7 +247,7 @@ export const FormAdicionarExemplar = ({ livro, onClose, onAddExemplar }) => {
       reservadoPor: [],
     };
 
-    onAddExemplar(novoExemplar); 
+    onAddExemplar(novoExemplar);
   };
 
   return (

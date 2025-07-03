@@ -7,63 +7,16 @@ import {
 } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Importa o Axios
 import Modal from "../../components/Modal";
 import Header from "./components/Header";
 
-const mockLivros = [
-  {
-    id_livro: "9788535914849",
-    titulo: "Dom Casmurro",
-    autor: "Machado de Assis",
-    genero: "Romance",
-    exemplares: 5,
-    isbn: "978-85-359-1484-9",
-    editora: "Companhia das Letras",
-    ano_publicacao: 2009,
-  },
-  {
-    id_livro: "9788579802685",
-    titulo: "O Cortiço",
-    autor: "Aluísio Azevedo",
-    genero: "Naturalismo",
-    exemplares: 3,
-    isbn: "978-85-798-0268-5",
-    editora: "Zahar",
-    ano_publicacao: 2015,
-  },
-  {
-    id_livro: "9788535902785",
-    titulo: "Vidas Secas",
-    autor: "Graciliano Ramos",
-    genero: "Modernismo",
-    exemplares: 7,
-    isbn: "978-85-359-0278-5",
-    editora: "Record",
-    ano_publicacao: 1997,
-  },
-  {
-    id_livro: "9788571640428",
-    titulo: "A Hora da Estrela",
-    autor: "Clarice Lispector",
-    genero: "Modernismo",
-    exemplares: 0,
-    isbn: "978-85-716-4042-8",
-    editora: "Rocco",
-    ano_publicacao: 1998,
-  },
-  {
-    id_livro: "9788504018635",
-    titulo: "O Auto da Compadecida",
-    autor: "Ariano Suassuna",
-    genero: "Comédia",
-    exemplares: 10,
-    isbn: "978-85-04-01863-5",
-    editora: "Nova Fronteira",
-    ano_publicacao: 2013,
-  },
-];
+// Cria uma instância do Axios com a URL base do seu backend
+const apiClient = axios.create({
+  baseURL: "http://localhost:3001",
+});
 
-// Componente auxiliar para exibir informações
+// Componente auxiliar para exibir informações na modal
 const InfoItem = ({ label, value }) => (
   <div>
     <p className="text-sm text-gray-400">{label}</p>
@@ -74,22 +27,67 @@ const InfoItem = ({ label, value }) => (
 const TabelaLivros = () => {
   const navigate = useNavigate();
 
-  const [searchValue, setSearchValue] = useState("");
+  // Estados de UI
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Estados de Dados
   const [livros, setLivros] = useState([]);
+  const [searchValue, setSearchValue] = useState("");
+
+  // Estados da Modal
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
   const [selectedLivro, setSelectedLivro] = useState(null);
 
+  const fetchLivros = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [livrosRes, exemplaresRes] = await Promise.all([
+        apiClient.get("/listagemLivros"),
+        apiClient.get("/listarExemplares"),
+      ]);
+
+      const todosExemplares = exemplaresRes.data;
+
+      const listagemLivros = livrosRes.data.map((livro) => {
+        let exemplares = [];
+        todosExemplares.forEach((exemplar) => {
+          if (exemplar.idLivro == livro.id) {
+            exemplares = [...exemplares, { registro: exemplar.numeroRegistro }];
+          }
+        });
+        console.log(exemplares);
+        return {
+          id: livro.id,
+          titulo: livro.titulo,
+          autor: livro.autor,
+          genero: livro.genero,
+          editora: livro.editora,
+          exemplares: exemplares,
+        };
+      });
+
+      setLivros(listagemLivros);
+    } catch (err) {
+      setError("Não foi possível carregar os livros.");
+      console.error("Erro ao buscar livros:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setLivros(mockLivros);
+    fetchLivros();
   }, []);
 
   const handleSearch = (value) => {
     if (!value) {
-      setLivros(mockLivros);
-      return;
+      fetchLivros();
     }
     setLivros(
-      mockLivros.filter((livro) => {
+      livros.filter((livro) => {
         const textoBusca = value.toLowerCase();
         return (
           livro.titulo.toLowerCase().includes(textoBusca) ||
@@ -100,7 +98,7 @@ const TabelaLivros = () => {
   };
 
   const handleViewExemplares = (livro) =>
-    navigate(`/livro/${livro.id_livro}/tabela-exemplares`);
+    navigate(`/livro/${livro.id}/tabela-exemplares`);
 
   const handleOpenInfoModal = (livro) => {
     setSelectedLivro(livro);
@@ -111,6 +109,28 @@ const TabelaLivros = () => {
     setInfoModalOpen(false);
     setSelectedLivro(null);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#2D3748] flex flex-col">
+        <Header active="livros" />
+        <div className="flex-grow flex justify-center items-center text-xl text-gray-300">
+          Carregando livros...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#2D3748] flex flex-col">
+        <Header active="livros" />
+        <div className="flex-grow flex justify-center items-center text-xl text-red-400">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#2D3748] font-sans text-gray-200">
@@ -154,7 +174,7 @@ const TabelaLivros = () => {
                   Gênero
                 </th>
                 <th className="p-4 font-bold uppercase tracking-wider text-center">
-                  Exemplares
+                  Qtd. Exemplares
                 </th>
                 <th className="p-4 font-bold uppercase tracking-wider text-center">
                   Ações
@@ -164,14 +184,14 @@ const TabelaLivros = () => {
             <tbody>
               {livros.map((livro) => (
                 <tr
-                  key={livro.id_livro}
+                  key={livro.id}
                   className="border-t border-gray-600 hover:bg-[#2D3748]/30 transition-colors"
                 >
                   <td className="p-4 font-semibold">{livro.titulo}</td>
                   <td className="p-4">{livro.autor}</td>
                   <td className="p-4">{livro.genero}</td>
                   <td className="p-4 font-semibold text-center">
-                    {livro.exemplares}
+                    {livro.exemplares.length}
                   </td>
                   <td className="p-4 text-center">
                     <div className="flex justify-center items-center gap-3">
@@ -202,7 +222,7 @@ const TabelaLivros = () => {
             className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
             disabled
           >
-            <ChevronLeftIcon className="h-6 w-6 " />
+            <ChevronLeftIcon className="h-6 w-6" />
           </button>
           <span className="text-xl font-bold px-4 py-2 bg-[#2D3748] rounded-md">
             1
@@ -224,11 +244,27 @@ const TabelaLivros = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-500 pt-4">
               <InfoItem label="Gênero" value={selectedLivro.genero} />
               <InfoItem label="Editora" value={selectedLivro.editora} />
-              <InfoItem
-                label="Ano de Publicação"
-                value={selectedLivro.ano_publicacao}
-              />
-              <InfoItem label="ISBN" value={selectedLivro.isbn} />
+            </div>
+            <div className="border-t border-gray-500 pt-4">
+              <p className="text-sm text-gray-400 mb-2">
+                Exemplares Registrados:
+              </p>
+              {selectedLivro.exemplares.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {selectedLivro.exemplares.map((exemplar) => (
+                    <span
+                      key={exemplar.registro}
+                      className="bg-[#2D3748] text-xs font-mono px-3 py-1 rounded-full"
+                    >
+                      {exemplar.registro}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">
+                  Nenhum exemplar cadastrado para este livro.
+                </p>
+              )}
             </div>
           </div>
         )}
