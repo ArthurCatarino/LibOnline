@@ -59,4 +59,4 @@ function verificaDiferencas(livroNovo,livroAntigo) {
 }
 
 
-module.exports = { cadastro, listagem, listagemUnica, editar, deletar };
+module.exports = { cadastro, listarTodos, listagemUnica, editar, deletar };

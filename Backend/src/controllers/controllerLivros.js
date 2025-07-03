@@ -1,8 +1,5 @@
-const persistanceLivros = require("../persistance/persistanceLivros")
 const servicesLivros = require("../services/servicesLivros")
-const validacaoLivro = require("../models/validacaoLivros")
 const modelLivro = require("../models/modelLivros")
-
 
 async function cadastro(req,res) {
   try {
@@ -28,6 +25,8 @@ async function listarTodos(req,res) {
   }catch(error) {
     console.error("Erro ao listar livros", error);
     res.status(500).json({mensagem: "Erro ao listar livros", erro: error})
+  }
+}
 
 async function listagemUnica(req,res) {
   try{
@@ -41,7 +40,6 @@ async function listagemUnica(req,res) {
 }
 
 async function editar(req,res) {
-
   try {
     id = req.params.id
     let {titulo, autor, editora, genero} = req.body
@@ -68,21 +66,7 @@ async function deletar(req,res) {
     if(error.message = "Id do livro nao encontrado") {codigoHTTP = 400}
     console.error("Erro ao deletar livro", error);
     res.status(codigoHTTP).json({mensagem:"Erro ao deletar livro", erro:error.message})
-
-function verificaDiferencas(livroNovo, livroAntigo) {
-  if (livroNovo.titulo) {
-    livroAntigo.titulo = livroNovo.titulo;
   }
-  if (livroNovo.autor) {
-    livroAntigo.autor = livroNovo.autor;
-  }
-  if (livroNovo.editora) {
-    livroAntigo.editora = livroNovo.editora;
-  }
-  if (livroNovo.genero) {
-    livroAntigo.genero = livroNovo.genero;
-  }
-  return livroAntigo;
 }
 
 module.exports = {cadastro,listarTodos,listagemUnica,editar,deletar}
