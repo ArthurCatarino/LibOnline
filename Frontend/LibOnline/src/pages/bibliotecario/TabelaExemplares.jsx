@@ -69,9 +69,9 @@ const TabelaExemplares = () => {
           apiClient.get("/listarUsuarios"),
         ]);
 
-      const todosExemplares = exemplaresRes.data.mensagem;
-      const todosEmprestimos = emprestimosRes.data.mensagem;
-      const todosLeitores = leitoresRes.data.mensagem;
+      const todosExemplares = exemplaresRes.data;
+      const todosEmprestimos = emprestimosRes.data;
+      const todosLeitores = leitoresRes.data;
 
       const exemplaresFiltrados = todosExemplares.filter(
         (exemplar) => exemplar.idLivro == livroId
@@ -110,12 +110,12 @@ const TabelaExemplares = () => {
         };
       });
 
-      const livroDosExemplares = livroRes.data.livros.find(
+      const livroDosExemplares = livroRes.data.find(
         (livro) => livro.id == livroId
       );
 
       setLivro(livroDosExemplares);
-      setLeitores(leitoresRes.data.mensagem);
+      setLeitores(leitoresRes.data);
       setExemplares(exemplaresDoLivro);
     } catch (err) {
       setError("Falha ao carregar os dados. Tente novamente mais tarde.");
