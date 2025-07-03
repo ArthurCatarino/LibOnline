@@ -61,16 +61,8 @@ async function criarEmprestimo (req,res) {
 async function listarEmprestimos (req,res) {
   try {
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
->>>>>>> Stashed changes
-    emprestimos = await persistanceEmprestimos.listaEmprestimos()
-    res.status(200).json({mensagem:emprestimos})
-=======
     emprestimos = await servicesEmprestimos.listaEmprestimos()
     res.status(200).json(emprestimos)
->>>>>>> d0967f0935b323c4c135d7bd9c2270d05f60434d
 
   } catch (error) {
     console.log(error)
