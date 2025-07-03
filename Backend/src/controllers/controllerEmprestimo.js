@@ -62,7 +62,7 @@ async function listarEmprestimos (req,res) {
   try {
 
     emprestimos = await servicesEmprestimos.listaEmprestimos()
-    res.status(200).json({mensagem:emprestimos})
+    res.status(200).json(emprestimos)
 
   } catch (error) {
     console.log(error)
@@ -77,7 +77,7 @@ async function verEmprestimoUnico (req,res) {
     res.status(400).json({mensagem:"Id invalido"})
     return
   }
-  res.status(200).json({mensagem:emprestimo[0]})
+  res.status(200).json(emprestimo[0])
   }catch(erro){
     console.error(erro)
     res.status(500).json({mensagem:"Erro ao buscar emprestimo",erro:erro})

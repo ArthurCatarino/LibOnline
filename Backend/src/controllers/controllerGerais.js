@@ -3,7 +3,7 @@ const servicesGerais = require("../services/servicesGerais")
 async function listaUsuarios(req,res) {
   try {
     leitores = await servicesGerais.listaUsuarios()
-    res.status(200).json({mensagem:leitores})
+    res.status(200).json(leitores)
     
   } catch (error) {
     console.log(error)
@@ -14,7 +14,7 @@ async function listaUsuarios(req,res) {
 async function listaExemplares(req,res) {
   try {
     exemplares = await servicesGerais.listaExemplares()
-    res.status(200).json({mensagem:exemplares})
+    res.status(200).json(exemplares)
     
   } catch (error) {
     console.log(error)
@@ -25,7 +25,7 @@ async function listaExemplares(req,res) {
 async function listaFuncionarios(req,res){
    try {
     funcionarios = await servicesGerais.listaFuncionarios()
-    res.status(200).json({mensagem:funcionarios})
+    res.status(200).json(funcionarios)
     
   } catch (error) {
     console.log(error)
