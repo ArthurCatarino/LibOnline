@@ -1,8 +1,8 @@
-const servicesGerais = require("../services/servicesGerais")
+const persistanceGerais = require("../persistance/persistanceGerais")
 
 async function listaUsuarios(req,res) {
   try {
-    leitores = await servicesGerais.listaUsuarios()
+    leitores = await persistanceGerais.listaUsuarios()
     res.status(200).json({mensagem:leitores})
     
   } catch (error) {
@@ -13,7 +13,7 @@ async function listaUsuarios(req,res) {
 
 async function listaExemplares(req,res) {
   try {
-    exemplares = await servicesGerais.listaExemplares()
+    exemplares = await persistanceGerais.listaExemplares()
     res.status(200).json({mensagem:exemplares})
     
   } catch (error) {
@@ -24,7 +24,7 @@ async function listaExemplares(req,res) {
 
 async function listaFuncionarios(req,res){
    try {
-    funcionarios = await servicesGerais.listaFuncionarios()
+    funcionarios = await persistanceGerais.listaFuncionarios()
     res.status(200).json({mensagem:funcionarios})
     
   } catch (error) {

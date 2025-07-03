@@ -1,10 +1,10 @@
-const servicesGerais = require("../services/servicesGerais")
-const servicesEmprestimos = require("../services/servicesEmprestimos")
+const persistanceGerais = require("../persistance/persistanceGerais")
+const persistanceEmprestimos = require("../persistance/persistanceEmprestimos")
 
 async function teste(req,res){
   try {
-    geral = await servicesGerais.listaExemplares()
-    unico = await servicesGerais.listaExemplarUnico(2)
+    geral = await persistanceGerais.listaExemplares()
+    unico = await persistanceGerais.listaExemplarUnico(2)
     res.json({geral:geral,unico:unico})
   }catch(error){
     console.error(error);
@@ -21,25 +21,25 @@ async function criarEmprestimo (req,res) {
   }
   try {
 
-    funcionario = await servicesGerais.listaFuncionarioUnico(idFuncionario)
+    funcionario = await persistanceGerais.listaFuncionarioUnico(idFuncionario)
     if(!funcionario[0]) {
       res.status(400).json({mensagem:"Bibliotecario invalido"})
       return
     }
 
-    usuario = await servicesGerais.listaUsuarioUnico(idUsuario)
+    usuario = await persistanceGerais.listaUsuarioUnico(idUsuario)
     if(!usuario[0]) {
       res.status(400).json({mensagem:"Usuario invalido"})
       return
     }
 
-    exemplar = await servicesGerais.listaExemplarUnico(idExemplar)
+    exemplar = await persistanceGerais.listaExemplarUnico(idExemplar)
     if(!exemplar[0]) {
       res.status(400).json({mensagem:"Exemplar invalido"})
       return
     }
     
-    verifica = await servicesEmprestimos.buscaEmprestimoUsuarioExemplar(idUsuario,idExemplar)
+    verifica = await persistanceEmprestimos.buscaEmprestimoUsuarioExemplar(idUsuario,idExemplar)
 
     for(const status of verifica) {
       if(status.statusEmprestimo == "ativo"){
@@ -48,7 +48,7 @@ async function criarEmprestimo (req,res) {
       }
     }
 
-    await servicesEmprestimos.criarEmprestimo(idFuncionario,idUsuario,idExemplar)
+    await persistanceEmprestimos.criarEmprestimo(idFuncionario,idUsuario,idExemplar)
     res.status(200).json({mensagem:"Emprestimo criado "})
     return
 
@@ -61,7 +61,7 @@ async function criarEmprestimo (req,res) {
 async function listarEmprestimos (req,res) {
   try {
 
-    emprestimos = await servicesEmprestimos.listaEmprestimos()
+    emprestimos = await persistanceEmprestimos.listaEmprestimos()
     res.status(200).json({mensagem:emprestimos})
 
   } catch (error) {
@@ -72,7 +72,7 @@ async function listarEmprestimos (req,res) {
 async function verEmprestimoUnico (req,res) {
   id = req.params.id
   try {
-  emprestimo = await servicesEmprestimos.buscaEmprestimoUnico(id)
+  emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
   if(!emprestimo[0]){
     res.status(400).json({mensagem:"Id invalido"})
     return
@@ -88,13 +88,13 @@ async function devolverEmprestimo (req,res) {
   id = req.params.id
   try{
   
-  emprestimo = await servicesEmprestimos.buscaEmprestimoUnico(id)
+  emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
   verifica = verificaEmprestimo(emprestimo[0])
   if(verifica) {
     res.status(400).json({mensagem:verifica})
     return
   }
-  await servicesEmprestimos.devolverEmprestimo(id)
+  await persistanceEmprestimos.devolverEmprestimo(id)
   res.status(200).json({mensagem:"Emprestimo devolvido com sucesso"})
 
   }catch(error){
@@ -106,12 +106,12 @@ async function devolverEmprestimo (req,res) {
 async function deletarEmprestimo (req,res) {
   id = req.params.id
   try {
-    emprestimo = await servicesEmprestimos.buscaEmprestimoUnico(id)
+    emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
     if(!emprestimo[0]){
       res.status(400).json({mensagem:"Id invalido"})
       return
     }
-    await servicesEmprestimos.deletarEmprestimo(id)
+    await persistanceEmprestimos.deletarEmprestimo(id)
     res.status(200).json({mensagem:"Emprestimo deletado com sucesso"})
   } catch (error) {
     console.error(error)
@@ -123,7 +123,7 @@ async function renovarEmprestimo (req,res) {
   id = req.params.id
   try{
   
-  emprestimo = await servicesEmprestimos.buscaEmprestimoUnico(id)
+  emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
   verifica = verificaEmprestimo(emprestimo[0])
   if(verifica) {
     res.status(400).json({mensagem:verifica})
@@ -131,7 +131,7 @@ async function renovarEmprestimo (req,res) {
   }
 
 
-  await servicesEmprestimos.renovarEmprestimo(id)
+  await persistanceEmprestimos.renovarEmprestimo(id)
   res.status(200).json({mensagem:"Emprestimo renovado com sucesso"})
 
   }catch(error){

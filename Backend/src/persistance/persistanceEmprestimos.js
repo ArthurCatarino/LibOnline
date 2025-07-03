@@ -17,14 +17,35 @@ async function criarEmprestimo(idFuncionario,idUsuario,idExemplar){
 
 async function buscaEmprestimoUsuarioExemplar(idUsuario,idExemplar) {
   return new Promise((aceito,rejeitado)=>{
-    const query = "SELECT statusEmprestimo FROM libonline.emprestimo WHERE idUsuario=? and idExemplar=?;"
-    dados = [idUsuario,idExemplar]
-    db.query(query,dados,(error,results)=>{
+    let dados = []
+    const query1 = "SELECT statusEmprestimo, e.idLivro FROM libonline.emprestimo natural join libonline.exemplar e WHERE idUsuario=?;"
+    db.query(query1,idUsuario,(error,results)=>{
       if(error){
         rejeitado(error)
         return
       }
       aceito(results)
+      
+      for(i in results) {
+        let resposta = {
+          statusEmprestimo:results[0].statusEmprestimo,
+          nomeLivro:null,
+          idLivro:results[0].idLivro
+        }
+        dados.push(resposta)
+    }
+      for(i in dados) {
+      const query2 = "select titulo from libonline.livro where id=?;"
+      db.query(query2,dados[i].idLivro,(error,results)=>{
+        if(error){
+          rejeitado(error)
+          return
+        }
+        aceito(results)
+        dados[i].nomeLivro = results[0].titulo
+        console.log(dados[i])
+      })
+    }
     })
   })
 }

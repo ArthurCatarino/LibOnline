@@ -1,4 +1,4 @@
-const servicesLogin = require("../services/servicesLogin")
+const persistanceLogin = require("../persistance/persistanceLogin")
 
 async function login(req,res){
   let {email,senha} = req.body
@@ -7,7 +7,7 @@ async function login(req,res){
     return
   }
   try {
-    usuario = await servicesLogin.login(email,senha)
+    usuario = await persistanceLogin.login(email,senha)
     res.status(200).json({mensagem:usuario})
   } catch (error) {
     console.error(error)
