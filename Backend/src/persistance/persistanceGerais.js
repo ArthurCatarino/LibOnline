@@ -52,21 +52,4 @@ async function listaFuncionarioUnico(id) {
   })
 }
 
-
-
-async function listaExemplarUnico(id) {
-  return new Promise ((aceito,rejeitado)=>{
-    const query = "SELECT * FROM libonline.exemplar WHERE idExemplar=?;"
-    db.query(query,id,(error,results)=>{
-      if(error){
-        rejeitado(error)
-        return
-      }
-      aceito(results)
-    })
-  })
-}
-
-
-
-module.exports = {listaUsuarios,listaUsuarioUnico,listaFuncionarios,listaFuncionarioUnico,listaExemplarUnico}
+module.exports = {listaUsuarios,listaUsuarioUnico,listaFuncionarios,listaFuncionarioUnico}

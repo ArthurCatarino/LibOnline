@@ -25,8 +25,8 @@ router.delete("/deletarEmprestimo/:id", controllerEmprestimo.deletar);
 //Rotas de Exemplares
 router.post("/criarExemplar",controllerExemplar.criar)
 router.get("/listarExemplares",controllerExemplar.listar)
-//router.put("/editarExemplar",controllerExemplar.editar)
-//router.delete("deletarExemplar",controllerExemplar.deletar)
+router.put("/editarExemplar/:id",controllerExemplar.editar)
+router.delete("/deletarExemplar/:id",controllerExemplar.deletar)
 
 //Rotas gerais
 router.get("/listarUsuarios", controllerGerais.listaUsuarios);
