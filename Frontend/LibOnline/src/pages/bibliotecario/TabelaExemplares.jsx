@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -48,6 +49,7 @@ const TabelaExemplares = () => {
   const [livro, setLivro] = useState(null);
   const [leitores, setLeitores] = useState([]); // Para os dropdowns
   const [exemplares, setExemplares] = useState([]);
+  const [emprestimos, setEmprestimos] = useState([]);
   const [searchValue, setSearchValue] = useState("");
 
   // Estados das Modais
@@ -72,6 +74,7 @@ const TabelaExemplares = () => {
       const todosExemplares = exemplaresRes.data;
       const todosEmprestimos = emprestimosRes.data;
       const todosLeitores = leitoresRes.data;
+      const emprestimosDoLivro = [];
 
       const exemplaresFiltrados = todosExemplares.filter(
         (exemplar) => exemplar.idLivro == livroId
@@ -82,11 +85,20 @@ const TabelaExemplares = () => {
         const emprestimoInfo = todosEmprestimos.find(
           (e) =>
             e.idExemplar === exemplar.idExemplar &&
-            normalizarTexto(e.statusEmprestimo) !== "devolvido"
+            normalizarTexto(e.statusEmprestimo) !== "devolvido" &&
+            normalizarTexto(exemplar.tipo) === "emprestado"
+        );
+
+        const reservas = todosEmprestimos.filter(
+          (e) =>
+            e.idExemplar === exemplar.idExemplar &&
+            normalizarTexto(e.statusEmprestimo) !== "devolvido" &&
+            normalizarTexto(exemplar.tipo) === "reservado"
         );
 
         let nomeDoLeitor = null;
-        // Se encontrou um empréstimo, busca o nome do leitor
+
+        // Se encontrou um empréstimo, busca o nome do leitor e as reservas do exemplar
         if (emprestimoInfo) {
           const leitorInfo = todosLeitores.find(
             (l) => l.idUsuario === emprestimoInfo.idUsuario
@@ -94,6 +106,7 @@ const TabelaExemplares = () => {
           if (leitorInfo) {
             nomeDoLeitor = leitorInfo.nome;
           }
+          emprestimosDoLivro.push(emprestimoInfo);
         }
 
         return {
@@ -105,7 +118,7 @@ const TabelaExemplares = () => {
             ? formatarData(emprestimoInfo.dataDevolucaoPrevista)
             : null,
           nomeLeitor: nomeDoLeitor,
-          reservadoPor: [],
+          reservadoPor: reservas,
           emprestimoId: emprestimoInfo ? emprestimoInfo.idEmprestimo : null,
         };
       });
@@ -117,6 +130,7 @@ const TabelaExemplares = () => {
       setLivro(livroDosExemplares);
       setLeitores(leitoresRes.data);
       setExemplares(exemplaresDoLivro);
+      setEmprestimos(emprestimosDoLivro);
     } catch (err) {
       setError("Falha ao carregar os dados. Tente novamente mais tarde.");
       console.error(err);
@@ -133,7 +147,7 @@ const TabelaExemplares = () => {
   // Funções CRUD com API
   const handleAddExemplar = async (novoExemplar) => {
     try {
-      await axios.post(`/api/livros/${livroId}/exemplares`, novoExemplar);
+      await apiClient.post(`/api/livros/${livroId}/exemplares`, novoExemplar);
 
       fetchData();
       handleCloseModals();
@@ -143,9 +157,21 @@ const TabelaExemplares = () => {
     }
   };
 
-  const handleUpdateExemplar = async (exemplarId, dados) => {
+  const handleAddEmprestimo = async (novoEmprestimo) => {
     try {
-      await axios.put(`/api/exemplares/${exemplarId}`, dados);
+      await apiClient.post(`/criarEmprestimo`, novoEmprestimo);
+
+      fetchData();
+      handleCloseModals();
+    } catch (err) {
+      alert("Erro ao adicionar emprestimo.");
+      console.error(err);
+    }
+  };
+
+  const handleUpdateExemplar = async (emprestimoId, dados) => {
+    try {
+      await apiClient.put(`/editarEmprestimo/${emprestimoId}`, dados);
 
       fetchData();
       handleCloseModals();
@@ -155,11 +181,56 @@ const TabelaExemplares = () => {
     }
   };
 
+  const handleRenovarExemplar = async (emprestimoId) => {
+    try {
+      await apiClient.put(`/renovarEmprestimo/${emprestimoId}`);
+      fetchData();
+      handleCloseModals();
+    } catch (err) {
+      alert("Erro ao renovar empréstimo.");
+      console.error(err);
+    }
+  };
+
+  const handleExcluirEmprestimo = async (emprestimo) => {
+    if (window.confirm("Tem certeza que deseja finalizar o empréstimo?")) {
+      try {
+        await apiClient.delete(`/deletarEmprestimo/${emprestimo.idEmprestimo}`);
+        fetchData();
+        alert(`Empréstimo do exemplar ${emprestimo.idEmprestimo} finalizado.`);
+      } catch (err) {
+        alert("Erro ao excluir empréstimo.");
+        console.error(err);
+      }
+    }
+  };
+
+  const handleDevolverEmprestimo = async (emprestimo) => {
+    if (window.confirm("Tem certeza que deseja finalizar o empréstimo?")) {
+      try {
+        await apiClient.delete(
+          `/devolverEmprestimo/${emprestimo.idEmprestimo}`
+        );
+        fetchData();
+        alert(`Empréstimo do exemplar ${emprestimo.idEmprestimo} devolvido.`);
+      } catch (err) {
+        alert("Erro ao devolver empréstimo.");
+        console.error(err);
+      }
+    }
+  };
+
   const handleExcluirExemplar = async (exemplar) => {
     if (window.confirm("Tem certeza que deseja excluir este exemplar?")) {
       try {
+        const emprestimo = emprestimos.find(
+          (emprestimo) => emprestimo.idExemplar == exemplar.id
+        );
         if (exemplar.status == "emprestado") {
-          await apiClient.delete(`/deletarEmprestimo/${exemplar.emprestimoId}`);
+          handleExcluirEmprestimo(emprestimo);
+          await apiClient.delete(`/deletarExemplar/${exemplar.emprestimoId}`);
+        } else {
+          await apiClient.delete(`/deletarExemplar/${exemplar.emprestimoId}`);
         }
         fetchData();
         alert(`Exemplar ${exemplar.id} excluido com sucesso!`);
@@ -248,7 +319,7 @@ const TabelaExemplares = () => {
             </button>
           </div>
 
-          <div className="bg-[#2D3748]/60 rounded-lg overflow-hidden shadow-lg">
+          <div className="bg-[#2D3748]/60 rounded-lg overflow-x-auto shadow-lg">
             <table className="w-full text-left">
               <thead className="bg-[#2D3748]/50">
                 <tr>
@@ -312,7 +383,8 @@ const TabelaExemplares = () => {
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex justify-center items-center gap-3">
-                        {exemplar.status === "disponivel" ? (
+                        {exemplar.status == "disponivel" ||
+                        exemplar.status == "reservado" ? (
                           <button
                             onClick={() => handleOpenLoanModal(exemplar)}
                             className="bg-green-600/80 hover:bg-green-500 py-1 px-3 rounded-md text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer"
@@ -375,8 +447,10 @@ const TabelaExemplares = () => {
         <FormEmprestarExemplar
           exemplar={selectedExemplar}
           livro={livro}
+          leitores={leitores}
           onClose={handleCloseModals}
           onEmprestar={handleUpdateExemplar}
+          criarEmprestimo={handleAddEmprestimo}
         />
       </Modal>
 
@@ -386,12 +460,15 @@ const TabelaExemplares = () => {
         title={`Editar Empréstimo: #${selectedExemplar?.id}`}
       >
         <FormEditarEmprestimo
+          emprestimos={emprestimos}
           exemplar={selectedExemplar}
           livro={livro}
-          onClose={handleCloseModals}
-          todosExemplaresDoLivro={exemplares}
-          onUpdate={handleUpdateExemplar}
           leitores={leitores}
+          todosExemplaresDoLivro={exemplares}
+          onClose={handleCloseModals}
+          editarEmprestimo={handleUpdateExemplar}
+          devolverEmprestimo={handleDevolverEmprestimo}
+          renovarEmprestimo={handleRenovarExemplar}
         />
       </Modal>
 
@@ -414,14 +491,16 @@ const TabelaExemplares = () => {
         <div>
           {selectedExemplar?.reservadoPor?.length > 0 ? (
             <ul className="space-y-2">
-              {selectedExemplar.reservadoPor.map((leitorId) => {
-                const leitorInfo = leitores.find((l) => l.id === leitorId);
+              {selectedExemplar.reservadoPor.map((reserva) => {
+                const leitor = leitores.find(
+                  (leitor) => leitor.idUsuario == reserva.idUsuario
+                );
                 return (
                   <li
-                    key={leitorId}
+                    key={reserva.idEmprestimo}
                     className="bg-[#2D3748] p-3 rounded-md text-center"
                   >
-                    {leitorInfo ? leitorInfo.nome : `Leitor ID: ${leitorId}`}
+                    {`leitor: ${leitor.nome} | reserva ID: ${reserva.idEmprestimo}`}
                   </li>
                 );
               })}
