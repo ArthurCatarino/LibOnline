@@ -23,7 +23,7 @@ async function criar(emprestimo) {
     throw erro
   }
 
-  const exemplar = await persistanceGerais.listaExemplarUnico(value.idLivro)
+  const exemplar = await persistanceGerais.listaExemplarUnico(value.idExemplar)
   if(!exemplar[0]) { 
     const erro = new Error("Exemplar invalido")
     erro.statuscode = 400
@@ -46,7 +46,7 @@ async function criar(emprestimo) {
     throw erro
   }
 
-  const verificaSeExemplarEstaDisponivel = await persistanceEmprestimos.verificaSeExemplarEstaEmprestado(value.idLivro) 
+  const verificaSeExemplarEstaDisponivel = await persistanceEmprestimos.verificaSeExemplarEstaEmprestado(value.idExemplar) 
   
   if(verificaSeExemplarEstaDisponivel[0].tipo !== "disponivel") {
     const erro = new Error("Exemplar nao esta disponivel")
@@ -54,7 +54,7 @@ async function criar(emprestimo) {
     throw erro
   }
 
-  await persistanceEmprestimos.criar(value.idFuncionario,value.idUsuario,value.idLivro)
+  await persistanceEmprestimos.criar(value.idFuncionario,value.idUsuario,value.idExemplar)
 }
 
 async function listar() {

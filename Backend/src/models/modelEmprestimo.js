@@ -1,9 +1,8 @@
 class emprestimo {
-  constructor(idUsuario,idLivro,idFuncionario) {
+  constructor(idUsuario,idExemplar,idFuncionario) {
   this.idUsuario = idUsuario
-  this.idLivro = idLivro
+  this.idExemplar = idExemplar
   this.idFuncionario = idFuncionario
   }
 }
-
 module.exports = emprestimo;
