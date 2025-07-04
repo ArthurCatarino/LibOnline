@@ -45,7 +45,7 @@ Este projeto segue o padrão de **Conventional Commits**, para manter um histór
 
 ## **Tecnologias usadas**
 
-Frontend: HTML, CSS, Javascript, React
+Frontend: Javascript, React
 
 Backend: Javascript, Express
 
