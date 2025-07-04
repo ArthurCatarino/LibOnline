@@ -2,7 +2,7 @@ const validaEmprestimo = require("../models/validacaoEmprestimo")
 const persistanceEmprestimos = require("../persistance/persistanceEmprestimos")
 const persistanceGerais = require ("../persistance/persistanceGerais")
 
-async function cadastraEmprestimo(emprestimo) {
+async function criar(emprestimo) {
   
   const { error, value } = validaEmprestimo.validate(emprestimo, { abortEarly: false }) //Valida os dados
   if (error) {
@@ -54,11 +54,69 @@ async function cadastraEmprestimo(emprestimo) {
     throw erro
   }
 
-  await persistanceEmprestimos.criarEmprestimo(value.idFuncionario,value.idUsuario,value.idLivro)
+  await persistanceEmprestimos.criar(value.idFuncionario,value.idUsuario,value.idLivro)
 }
 
-async function listarEmprestimos() {
-  return persistanceEmprestimos.listaEmprestimos()
+async function listar() {
+  return await persistanceEmprestimos.lista()
 }
 
-module.exports = {cadastraEmprestimo,listarEmprestimos}
+async function buscaEmprestimoUnico(id) {
+  verificaId(id)
+  const emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
+  if(!emprestimo[0]) {
+    const erro = new Error("Nenhum emprestimo encontrado")
+    erro.statuscode = 400
+    throw erro
+  }
+  return emprestimo
+}
+
+async function devolver(id) {
+  verificaId(id)
+  await verifica(id)
+  await persistanceEmprestimos.devolver(id)
+}
+
+async function renovar(id) {
+  verificaId(id)
+  await verifica(id)
+  await persistanceEmprestimos.renovar(id)
+}
+
+async function deletar(id){
+  verificaId(id)
+  const emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
+  if(!emprestimo[0]){
+    const erro = new Error("id invalido")
+    erro.statuscode = 400
+    throw erro
+  }
+  await persistanceEmprestimos.deletar(id)
+}
+
+async function verifica(id) {
+  const emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
+
+  if(!emprestimo[0]){
+    const erro = new Error("id invalido")
+    erro.statuscode = 400
+    throw erro
+  }
+  if(emprestimo[0].statusEmprestimo != "ativo") {
+    const erro = new Error("O emprestimo nao esta ativo")
+    erro.statuscode = 400
+    throw erro
+  }
+
+}
+
+function verificaId(id){
+  if(!id) {
+    const erro =  new Error("Id invalido")
+    erro.statuscode = 400
+    throw erro
+  }
+}
+
+module.exports = {criar,listar,buscaEmprestimoUnico,devolver,renovar,deletar}
