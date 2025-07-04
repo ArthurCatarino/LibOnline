@@ -5,6 +5,7 @@ import {
   BookOpenIcon,
   InformationCircleIcon,
   PlusIcon,
+  TrashIcon,
 } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -222,6 +223,25 @@ const TabelaLivros = () => {
     }
   };
 
+  const handleDeleteLivro = async (livroId) => {
+    // Pergunta ao usuário se ele realmente quer excluir
+    if (
+      window.confirm(
+        "Tem certeza que deseja excluir este livro? Todos os seus exemplares também serão perdidos."
+      )
+    ) {
+      try {
+        // Rota a ser criada no backend: DELETE /livros/:id
+        await apiClient.delete(`/deletarLivro/${livroId}`);
+        alert("Livro excluído com sucesso!");
+        fetchLivros(); // Recarrega a lista para remover o livro da tela
+      } catch (err) {
+        alert("Erro ao excluir o livro.");
+        console.error("Erro ao deletar livro:", err);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#2D3748] flex flex-col">
@@ -320,6 +340,12 @@ const TabelaLivros = () => {
                       >
                         <InformationCircleIcon className="h-5 w-5" />
                         SABER MAIS
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLivro(livro.id)}
+                        className="bg-red-600/80 p-2 rounded-lg text-sm font-bold flex items-center gap-2 mx-auto hover:bg-red-500 transition-colors cursor-pointer"
+                      >
+                        <TrashIcon className="h-5 w-5" />
                       </button>
                     </div>
                   </td>
