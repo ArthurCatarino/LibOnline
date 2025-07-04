@@ -5,6 +5,7 @@ import axios from "axios"; // Importa o Axios
 import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import Logo from "../assets/pilha-de-tres-livros.png";
 import { useNavigate } from "react-router-dom";
+import { normalizarTexto } from "../utils/normalizarTexto";
 
 // Cria uma instância do Axios com a URL base do seu backend
 const apiClient = axios.create({
@@ -45,17 +46,13 @@ const Login = () => {
       const response = await apiClient.post("/login", data);
 
       const usuario = response.data.mensagem;
-
-      alert(`Bem-vindo(a), ${usuario.nome}!`);
+      const cargo = normalizarTexto(usuario.cargo);
 
       // Redireciona o usuário com base no tipo
-      if (usuario.tipo_usuario === "leitor") {
-        navigate(`/leitor/${usuario.id_usuario}/emprestimos`);
-      } else if (
-        usuario.tipo_usuario === "bibliotecario" ||
-        usuario.tipo_usuario === "administrador"
-      ) {
-        navigate("/livros");
+      if (cargo === "leitor") {
+        navigate(`/leitor/${usuario.idUsuario}/emprestimos`);
+      } else if (cargo === "bibliotecario" || cargo === "administrador") {
+        navigate("/leitores");
       } else {
         // Fallback para uma rota padrão, caso necessário
         navigate("/");

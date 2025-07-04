@@ -147,7 +147,7 @@ const TabelaExemplares = () => {
   // Funções CRUD com API
   const handleAddExemplar = async (novoExemplar) => {
     try {
-      await apiClient.post(`/api/livros/${livroId}/exemplares`, novoExemplar);
+      await apiClient.post(`/criarExemplar`, novoExemplar);
 
       fetchData();
       handleCloseModals();
@@ -480,7 +480,7 @@ const TabelaExemplares = () => {
         <FormAdicionarExemplar
           livro={livro}
           onClose={handleCloseModals}
-          onAdd={handleAddExemplar}
+          adicionarExemplar={handleAddExemplar}
         />
       </Modal>
       <Modal

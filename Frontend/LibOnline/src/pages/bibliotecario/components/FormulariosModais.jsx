@@ -122,8 +122,7 @@ export const FormEditarEmprestimo = ({
     if (status !== exemplar.status) {
       if (status == "disponivel") {
         devolverEmprestimo(emprestimo);
-      }
-      if (status == "danificado" && emprestimo) {
+      } else if (status == "danificado" && emprestimo) {
         const novoExemplar = {
           exemplarId: exemplaresDisponiveisParaTroca[0].id,
         };
@@ -287,26 +286,26 @@ export const FormEditarEmprestimo = ({
 };
 
 // --- Formulário para Adicionar um Novo Exemplar ---
-export const FormAdicionarExemplar = ({ livro, onClose, onAddExemplar }) => {
+export const FormAdicionarExemplar = ({
+  livro,
+  onClose,
+  adicionarExemplar,
+}) => {
   const handleSubmit = (event) => {
     event.preventDefault();
-    const newId = event.target.idExemplar.value;
+    const numRegistro = event.target.idExemplar.value;
 
-    if (!newId) {
-      alert("Por favor, insira uma identificação para o novo exemplar.");
+    if (!numRegistro) {
+      alert("Por favor, insira o código de registro do exemplar.");
       return;
     }
 
     const novoExemplar = {
-      id: newId,
-      livroId: livro.id,
-      dataCadastro: new Date().toLocaleDateString("pt-BR"),
-      status: "Disponível",
-      dataDevolucao: null,
-      reservadoPor: [],
+      idLivro: livro.id,
+      numeroRegistro: numRegistro,
     };
 
-    onAddExemplar(novoExemplar);
+    adicionarExemplar(novoExemplar);
   };
 
   return (
@@ -322,7 +321,7 @@ export const FormAdicionarExemplar = ({ livro, onClose, onAddExemplar }) => {
           htmlFor="idExemplar"
           className="block text-gray-300 text-sm font-bold mb-2"
         >
-          Identificação do Novo Exemplar (ID):
+          Registro do Novo Exemplar:
         </label>
         <input
           type="text"
