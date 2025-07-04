@@ -13,12 +13,13 @@ router.put("/editarLivro/:id", controllerLivros.editar);
 router.delete("/deletarLivro/:id", controllerLivros.deletar);
 
 //Rotas de emprestimos
-router.post("/criarEmprestimo", controllerEmprestimo.criarEmprestimo);
-router.get("/listaEmprestimos", controllerEmprestimo.listarEmprestimos);
+router.post("/criarEmprestimo", controllerEmprestimo.criar);
+router.put("/editarEmprestimo",controllerEmprestimo.editar)
+router.get("/listaEmprestimos", controllerEmprestimo.listar);
 router.get("/buscaEmprestimo/:id", controllerEmprestimo.verEmprestimoUnico);
-router.put("/devolverEmprestimo/:id", controllerEmprestimo.devolverEmprestimo);
-router.put("/renovarEmprestimo/:id", controllerEmprestimo.renovarEmprestimo);
-router.delete("/deletarEmprestimo/:id", controllerEmprestimo.deletarEmprestimo);
+router.put("/devolverEmprestimo/:id", controllerEmprestimo.devolver);
+router.put("/renovarEmprestimo/:id", controllerEmprestimo.renovar);
+router.delete("/deletarEmprestimo/:id", controllerEmprestimo.deletar);
 
 //Rotas gerias
 router.get("/listarUsuarios", controllerGerais.listaUsuarios);

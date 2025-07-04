@@ -4,12 +4,12 @@ const serviceEmprestimos = require("../services/servicesEmprestimo")
 const modelEmprestimo = require("../models/modelEmprestimo")
 const emprestimo = require("../models/modelEmprestimo")
 
-async function criarEmprestimo (req,res) {
+async function criar (req,res) {
   try {
 
     let {idFuncionario,idUsuario,idExemplar} = req.body
     let emprestimo = new modelEmprestimo(idUsuario,idExemplar,idFuncionario)
-    await serviceEmprestimos.cadastraEmprestimo(emprestimo)
+    await serviceEmprestimos.criar(emprestimo)
     res.status(200).json({mensagem:"Emprestimo criado "})
 
   } catch (error) {
@@ -22,10 +22,10 @@ async function criarEmprestimo (req,res) {
   }
 }
 
-async function listarEmprestimos (req,res) {
+async function listar (req,res) {
   try {
-    emprestimos = await serviceEmprestimos.listarEmprestimos()
-    res.status(200).json(emprestimos)
+    emprestimos = await serviceEmprestimos.listar()
+    res.status(200).json({emprestimos})
 
   } catch (error) {
     console.log(error)
@@ -34,84 +34,62 @@ async function listarEmprestimos (req,res) {
 }
 
 async function verEmprestimoUnico (req,res) {
-  id = req.params.id
   try {
-  emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
-  if(!emprestimo[0]){
-    res.status(400).json({mensagem:"Id invalido"})
-    return
-  }
-  res.status(200).json(emprestimo[0])
+    id = req.params.id
+    emprestimoBuscado = await serviceEmprestimos.buscaEmprestimoUnico(id)
+    res.status(200).json({emprestimoBuscado})
   }catch(erro){
+    codigoHTTP = 500;
+    if(erro.statuscode) {codigoHTTP = erro.statuscode}
     console.error(erro)
-    res.status(500).json({mensagem:"Erro ao buscar emprestimo",erro:erro})
+    res.status(codigoHTTP).json({mensagem:"Erro ao buscar emprestimo",erro:erro.message})
   }
 }
 
-async function devolverEmprestimo (req,res) {
+async function devolver (req,res) {
+  try{  
   id = req.params.id
-  try{
-  
-  emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
-  verifica = verificaEmprestimo(emprestimo[0])
-  if(verifica) {
-    res.status(400).json({mensagem:verifica})
-    return
-  }
-  await persistanceEmprestimos.devolverEmprestimo(id)
+  await serviceEmprestimos.devolver(id) 
   res.status(200).json({mensagem:"Emprestimo devolvido com sucesso"})
 
   }catch(error){
+    let codigoHTTP = 500
+    if(error.statuscode) {codigoHTTP = 400}
     console.error(error)
-    res.status(500).json({mensagem:"Erro ao editar emprestimo",erro:error})
+    res.status(codigoHTTP).json({mensagem:"Erro ao devolver emprestimo",erro:error.message})
   }
 }
 
-async function deletarEmprestimo (req,res) {
-  id = req.params.id
+async function deletar (req,res) {
   try {
-    emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
-    if(!emprestimo[0]){
-      res.status(400).json({mensagem:"Id invalido"})
-      return
-    }
-    await persistanceEmprestimos.deletarEmprestimo(id)
+    id = req.params.id
+    await serviceEmprestimos.deletar(id)
     res.status(200).json({mensagem:"Emprestimo deletado com sucesso"})
   } catch (error) {
+    let codigoHTTP = 500
+    if(error.statuscode) {codigoHTTP = 400}
     console.error(error)
-    res.status(500).json({mensagem:"Erro ao deletar emprestimo",erro:error})
+    res.status(codigoHTTP).json({mensagem:"Erro ao deletar emprestimo",erro:error.message})
   }
 }
 
-async function renovarEmprestimo (req,res) {
-  id = req.params.id
+async function renovar (req,res) {
   try{
-  
-  emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
-  verifica = verificaEmprestimo(emprestimo[0])
-  if(verifica) {
-    res.status(400).json({mensagem:verifica})
-    return
-  }
-
-
-  await persistanceEmprestimos.renovarEmprestimo(id)
+  id = req.params.id 
+  await serviceEmprestimos.renovar(id)
   res.status(200).json({mensagem:"Emprestimo renovado com sucesso"})
-
   }catch(error){
+    codigoHTTP = 500
+    if(error.statuscode) {codigoHTTP = error.statuscode}
     console.error(error)
-    res.status(500).json({mensagem:"Erro ao renovar emprestimo",erro:error})
+    res.status(codigoHTTP).json({mensagem:"Erro ao renovar emprestimo",erro:error.message})
   }
 }
 
-function verificaEmprestimo(emprestimo) {
-  if(!emprestimo){
-    return "id invalido"
-  }
-  if(emprestimo.statusEmprestimo != "ativo") {
-    return "Este emprestimo nao esta ativo"
-  }
-
+async function editar(req,res){
+  
 }
 
-module.exports = {criarEmprestimo,verEmprestimoUnico,listarEmprestimos,renovarEmprestimo,deletarEmprestimo,devolverEmprestimo}
+
+
+module.exports = {criar,verEmprestimoUnico,listar,renovar,deletar,devolver,editar}

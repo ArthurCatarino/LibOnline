@@ -1,6 +1,6 @@
 const db = require("../db")
 
-async function criarEmprestimo(idFuncionario, idUsuario, idExemplar) {
+async function criar(idFuncionario, idUsuario, idExemplar) {
   return new Promise((aceito, rejeitado) => {
     db.getConnection((err, connection) => {
       if (err) {
@@ -87,8 +87,7 @@ return new Promise((aceito,rejeitado)=>{
 })
 }
 
-
-async function listaEmprestimos(){
+async function lista(){
   return new Promise((aceito,rejeitado)=>{
     const query = "SELECT * FROM libonline.emprestimo;"
     db.query(query,((error,results)=>{
@@ -114,7 +113,7 @@ return new Promise((aceito,rejeitado)=>{
   })
 }
 
-async function devolverEmprestimo(id) {
+async function devolver(id) {
 return new Promise((aceito,rejeitado)=>{
     const query = "UPDATE libonline.emprestimo SET dataDevolucaoReal=current_timestamp() , statusEmprestimo='devolvido'  WHERE idEmprestimo=?;"
     db.query(query,id,(error,results)=>{
@@ -127,20 +126,49 @@ return new Promise((aceito,rejeitado)=>{
   })
 }
 
-async function deletarEmprestimo(id) {
-  return new Promise((aceito,rejeitado)=>{
-    const query = "DELETE FROM libonline.emprestimo WHERE idEmprestimo=?;"
-    db.query(query,id,(error,results)=>{
-      if(error){
-        rejeitado(error)
-        return
+async function deletar(idEmprestimo) {
+  return new Promise((aceito, rejeitado) => {
+    // Primeiro, buscar o idExemplar associado ao empréstimo
+    const queryBuscaExemplar = "SELECT idExemplar FROM libonline.emprestimo WHERE idEmprestimo = ?";
+    db.query(queryBuscaExemplar, [idEmprestimo], (error, resultadoBusca) => {
+      if (error) {
+        rejeitado(error);
+        return;
       }
-      aceito(results)
-    })
-  })
+
+      const idExemplar = resultadoBusca[0].idExemplar;
+
+      // Agora deletar o empréstimo
+      const queryDelete = "DELETE FROM libonline.emprestimo WHERE idEmprestimo = ?";
+
+      db.query(queryDelete, [idEmprestimo], (error, resultadoDelete) => {
+        if (error) {
+          rejeitado(error);
+          return;
+        }
+
+        // Agora atualizar o tipo do exemplar para 'disponivel'
+        const queryUpdate = "UPDATE libonline.exemplar SET tipo = 'disponivel' WHERE idExemplar = ?";
+
+        db.query(queryUpdate, [idExemplar], (error, resultadoUpdate) => {
+          if (error) {
+            rejeitado(error);
+            return;
+          }
+
+          aceito({
+            mensagem: "Empréstimo deletado e exemplar marcado como disponível",
+            resultadoDelete,
+            resultadoUpdate
+          });
+        });
+      });
+    });
+  });
 }
 
-async function renovarEmprestimo(id) {
+
+async function renovar(id) {
 return new Promise((aceito,rejeitado)=>{
     const query = "UPDATE libonline.emprestimo SET dataDevolucaoPrevista =DATE_ADD(dataDevolucaoPrevista, INTERVAL 20 DAY) WHERE idEmprestimo=?;"
     db.query(query,id,(error,results)=>{
@@ -167,4 +195,4 @@ async function verificaSeExemplarEstaEmprestado(id) {
 }
 
 
-module.exports = {criarEmprestimo,buscaEmprestimoUnico,listaEmprestimos,buscaEmprestimoUsuarioExemplar,devolverEmprestimo,deletarEmprestimo,renovarEmprestimo,verificaSeTemEmprestimoAtrasado,verificaSeExemplarEstaEmprestado}
+module.exports = {criar,buscaEmprestimoUnico,lista,buscaEmprestimoUsuarioExemplar,devolver,deletar,renovar,verificaSeTemEmprestimoAtrasado,verificaSeExemplarEstaEmprestado}
