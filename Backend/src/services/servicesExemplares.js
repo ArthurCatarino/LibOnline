@@ -49,7 +49,7 @@ async function editar(exemplar,id){
 async function deletar(id){
    const livro =  await persistanceExemplares.listaExemplarUnico(id)
   if(!livro[0]) {
-    let erro = new Error("Livro passado nao existe")
+    let erro = new Error("Exemplar passado nao existe")
     erro.statuscode = 400
     throw erro
   }

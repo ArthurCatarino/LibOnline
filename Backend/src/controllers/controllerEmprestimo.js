@@ -87,9 +87,17 @@ async function renovar (req,res) {
 }
 
 async function editar(req,res){
-  
+  try{
+  const id = req.params.id 
+  const {idUsuario,idExemplar} = req.body
+  await serviceEmprestimos.editar(id,idUsuario,idExemplar)
+  res.status(200).json({mensagem:"Emprestimo editado com sucesso"})
+  }catch(error){
+    codigoHTTP = 500
+    if(error.statuscode) {codigoHTTP = error.statuscode}
+    console.log(error)
+    res.status(codigoHTTP).json({mensagem:"Erro ao editar emprestimo", erro:error.message})
+  }
 }
-
-
 
 module.exports = {criar,verEmprestimoUnico,listar,renovar,deletar,devolver,editar}

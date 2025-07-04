@@ -231,5 +231,25 @@ async function verificaSeExemplarEstaEmprestado(id) {
   })
 }
 
+async function editar(idEmprestimo, idUsuario, idExemplar) {
+  return new Promise((aceito, rejeitado) => {
+    const dados = [idUsuario, idExemplar, idEmprestimo];
+    const query = `
+      UPDATE libonline.emprestimo
+      SET idUsuario = ?, idExemplar = ?
+      WHERE idEmprestimo = ?;
+    `;
 
-module.exports = {criar,buscaEmprestimoUnico,lista,buscaEmprestimoUsuarioExemplar,devolver,deletar,renovar,verificaSeTemEmprestimoAtrasado,verificaSeExemplarEstaEmprestado}
+    db.query(query, dados, (error, results) => {
+      if (error) {
+        rejeitado(error);
+        return;
+      }
+      aceito(results);
+    });
+  });
+}
+
+
+
+module.exports = {criar,buscaEmprestimoUnico,lista,buscaEmprestimoUsuarioExemplar,devolver,deletar,renovar,verificaSeTemEmprestimoAtrasado,verificaSeExemplarEstaEmprestado,editar}

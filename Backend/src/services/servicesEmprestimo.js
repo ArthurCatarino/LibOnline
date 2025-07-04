@@ -1,6 +1,7 @@
 const validaEmprestimo = require("../models/validacaoEmprestimo")
 const persistanceEmprestimos = require("../persistance/persistanceEmprestimos")
-const persistanceGerais = require ("../persistance/persistanceGerais")
+const persistanceGerais = require("../persistance/persistanceGerais")
+const persistanceExemplar = require("../persistance/persistanceExemplares")
 
 async function criar(emprestimo) {
   
@@ -23,7 +24,7 @@ async function criar(emprestimo) {
     throw erro
   }
 
-  const exemplar = await persistanceGerais.listaExemplarUnico(value.idExemplar)
+  const exemplar = await persistanceExemplar.listaExemplarUnico(value.idExemplar)
   if(!exemplar[0]) { 
     const erro = new Error("Exemplar invalido")
     erro.statuscode = 400
@@ -111,6 +112,30 @@ async function verifica(id) {
 
 }
 
+async function editar(id,idUsuario,idExemplar){
+  const emprestimo = await persistanceEmprestimos.buscaEmprestimoUnico(id)
+  if(!emprestimo[0]) {
+    let erro = new Error("Emprestimo com esse id nao encontrado")
+    erro.statuscode = 400
+    throw erro
+  }
+  const exemplar = await persistanceExemplar.listaExemplarUnico(idExemplar)
+  if(!exemplar[0]) {
+    let erro = new Error("Exemplar com esse id não encontrado")
+    erro.statuscode = 400
+    throw erro
+  }
+
+  const usuario = await persistanceGerais.listaUsuarioUnico(idUsuario)
+  if(!usuario[0]) {
+    let erro = new Error("Usuario com esse id nao encontrado")
+    erro.statuscode = 400
+    throw erro
+  }
+
+  await persistanceEmprestimos.editar(id,idUsuario,idExemplar) 
+}
+
 function verificaId(id){
   if(!id) {
     const erro =  new Error("Id invalido")
@@ -119,4 +144,6 @@ function verificaId(id){
   }
 }
 
-module.exports = {criar,listar,buscaEmprestimoUnico,devolver,renovar,deletar}
+
+
+module.exports = {criar,listar,buscaEmprestimoUnico,devolver,renovar,deletar,editar}
