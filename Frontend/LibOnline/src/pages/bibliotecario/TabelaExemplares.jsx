@@ -169,7 +169,19 @@ const TabelaExemplares = () => {
     }
   };
 
-  const handleUpdateExemplar = async (emprestimoId, dados) => {
+  const handleUpdateExemplar = async (exemplarId, dados) => {
+    try {
+      await apiClient.put(`/editarExemplar/${exemplarId}`, dados);
+
+      fetchData();
+      handleCloseModals();
+    } catch (err) {
+      alert("Erro ao atualizar empréstimo.");
+      console.error(err);
+    }
+  };
+
+  const handleUpdateEmprestimo = async (emprestimoId, dados) => {
     try {
       await apiClient.put(`/editarEmprestimo/${emprestimoId}`, dados);
 
@@ -228,9 +240,9 @@ const TabelaExemplares = () => {
         );
         if (exemplar.status == "emprestado") {
           handleExcluirEmprestimo(emprestimo);
-          await apiClient.delete(`/deletarExemplar/${exemplar.emprestimoId}`);
+          await apiClient.delete(`/deletarExemplar/${exemplar.id}`);
         } else {
-          await apiClient.delete(`/deletarExemplar/${exemplar.emprestimoId}`);
+          await apiClient.delete(`/deletarExemplar/${exemplar.id}`);
         }
         fetchData();
         alert(`Exemplar ${exemplar.id} excluido com sucesso!`);
@@ -466,7 +478,8 @@ const TabelaExemplares = () => {
           leitores={leitores}
           todosExemplaresDoLivro={exemplares}
           onClose={handleCloseModals}
-          editarEmprestimo={handleUpdateExemplar}
+          editarEmprestimo={handleUpdateEmprestimo}
+          editarExemplar={handleUpdateExemplar}
           devolverEmprestimo={handleDevolverEmprestimo}
           renovarEmprestimo={handleRenovarExemplar}
         />
