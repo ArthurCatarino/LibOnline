@@ -18,7 +18,7 @@ async function criar(req, res) {
 async function listar(req, res) {
   try {
     const exemplares = await servicesExemplares.listar()
-    res.status(200).json({exemplares});
+    res.status(200).json(exemplares);
   } catch (error) {
     console.log(error);
     res.status(500).json({ mensagem: "Erro ao listar exemplares", erro: error.message });
