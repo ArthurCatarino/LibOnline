@@ -121,11 +121,19 @@ export const FormEditarEmprestimo = ({
     const status = event.target.status?.value;
     if (status !== exemplar.status) {
       if (status == "disponivel") {
-        devolverEmprestimo(emprestimo);
+        if (emprestimo) devolverEmprestimo(emprestimo);
+        const statusAtualizado = {
+          idLivro: livro.id,
+          numeroRegistro: exemplar.registro,
+          tipo: status,
+        };
+        editarExemplar(exemplar.id, statusAtualizado);
+        onClose();
       } else if (status == "danificado" && emprestimo) {
         const novoExemplar = {
-          exemplarId: exemplaresDisponiveisParaTroca[0].id,
+          idExemplar: exemplaresDisponiveisParaTroca[0].id,
         };
+        console.log(exemplaresDisponiveisParaTroca[0].id);
         editarEmprestimo(emprestimo.id, novoExemplar);
         // dados com o status atual do exemplar
         const statusAtualizado = { tipo: status };
@@ -133,14 +141,19 @@ export const FormEditarEmprestimo = ({
         // dados com o novo status do novo exemplar do empréstimo
         const novoStatus = { tipo: "emprestado" };
         editarExemplar(exemplaresDisponiveisParaTroca[0].id, novoStatus);
+        onClose();
       }
-    } else {
+    } else if (emprestimo) {
       // A submissão principal agora só lida com as outras alterações
       const dadosParaApi = {
-        leitorId: event.target.leitor?.value,
-        exemplarId: event.target.exemplar?.value,
+        idUsuario: event.target.leitor?.value,
+        idExemplar: event.target.exemplar?.value,
       };
       editarEmprestimo(emprestimo.idEmprestimo, dadosParaApi);
+      onClose();
+    } else {
+      alert("Nenhuma alteração feita");
+      onClose();
     }
   };
 
@@ -167,9 +180,9 @@ export const FormEditarEmprestimo = ({
                 defaultValue={exemplar?.leitorId} // Padrão é o leitor atual
                 className="w-full bg-[#2D3748] text-gray-200 border-transparent rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-white cursor-pointer"
               >
-                {leitores.map((leitor) => (
-                  <option key={leitor.id} value={leitor.id}>
-                    {leitor.nome}
+                {leitores.map((l) => (
+                  <option key={l.idUsuario} value={l.idUsuario}>
+                    {l.nome}
                   </option>
                 ))}
               </select>

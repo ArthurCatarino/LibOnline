@@ -171,18 +171,21 @@ const TabelaExemplares = () => {
 
   const handleUpdateExemplar = async (exemplarId, dados) => {
     try {
+      console.log(dados);
       await apiClient.put(`/editarExemplar/${exemplarId}`, dados);
 
       fetchData();
       handleCloseModals();
     } catch (err) {
-      alert("Erro ao atualizar empréstimo.");
+      alert("Erro ao atualizar exemplar.");
       console.error(err);
     }
   };
 
   const handleUpdateEmprestimo = async (emprestimoId, dados) => {
     try {
+      console.log(dados);
+
       await apiClient.put(`/editarEmprestimo/${emprestimoId}`, dados);
 
       fetchData();
@@ -220,9 +223,8 @@ const TabelaExemplares = () => {
   const handleDevolverEmprestimo = async (emprestimo) => {
     if (window.confirm("Tem certeza que deseja finalizar o empréstimo?")) {
       try {
-        await apiClient.delete(
-          `/devolverEmprestimo/${emprestimo.idEmprestimo}`
-        );
+        console.log(emprestimo.idEmprestimo);
+        await apiClient.put(`/devolverEmprestimo/${emprestimo.idEmprestimo}`);
         fetchData();
         alert(`Empréstimo do exemplar ${emprestimo.idEmprestimo} devolvido.`);
       } catch (err) {
