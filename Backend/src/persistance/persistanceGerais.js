@@ -52,18 +52,7 @@ async function listaFuncionarioUnico(id) {
   })
 }
 
-async function listaExemplares() {
-  return new Promise ((aceito,rejeitado)=>{
-    const query = "SELECT * FROM libonline.exemplar;"
-    db.query(query,(error,results)=>{
-      if(error){
-        rejeitado(error)
-        return
-      }
-      aceito(results)
-    })
-  })
-}
+
 
 async function listaExemplarUnico(id) {
   return new Promise ((aceito,rejeitado)=>{
@@ -80,4 +69,4 @@ async function listaExemplarUnico(id) {
 
 
 
-module.exports = {listaUsuarios,listaUsuarioUnico,listaFuncionarios,listaFuncionarioUnico,listaExemplares,listaExemplarUnico}
+module.exports = {listaUsuarios,listaUsuarioUnico,listaFuncionarios,listaFuncionarioUnico,listaExemplarUnico}

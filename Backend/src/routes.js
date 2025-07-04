@@ -4,6 +4,7 @@ const controllerLivros = require("./controllers/controllerLivros");
 const controllerEmprestimo = require("./controllers/controllerEmprestimo");
 const controllerLogin = require("./controllers/controllerLogin");
 const controllerGerais = require("./controllers/controllerGerais");
+const controllerExemplar = require("./controllers/controllerExemplar")
 
 //Rotas cadastro de livros
 router.post("/cadastroLivros", controllerLivros.cadastro);
@@ -21,9 +22,14 @@ router.put("/devolverEmprestimo/:id", controllerEmprestimo.devolver);
 router.put("/renovarEmprestimo/:id", controllerEmprestimo.renovar);
 router.delete("/deletarEmprestimo/:id", controllerEmprestimo.deletar);
 
-//Rotas gerias
+//Rotas de Exemplares
+router.post("/criarExemplar",controllerExemplar.criar)
+router.get("/listarExemplares",controllerExemplar.listar)
+//router.put("/editarExemplar",controllerExemplar.editar)
+//router.delete("deletarExemplar",controllerExemplar.deletar)
+
+//Rotas gerais
 router.get("/listarUsuarios", controllerGerais.listaUsuarios);
-router.get("/listarExemplares", controllerGerais.listaExemplares);
 router.get("/listarFuncionarios", controllerGerais.listaFuncionarios);
 
 //login
