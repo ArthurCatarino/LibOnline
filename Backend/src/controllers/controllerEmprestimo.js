@@ -25,7 +25,7 @@ async function criar (req,res) {
 async function listar (req,res) {
   try {
     emprestimos = await serviceEmprestimos.listar()
-    res.status(200).json({emprestimos})
+    res.status(200).json(emprestimos)
 
   } catch (error) {
     console.log(error)
@@ -37,7 +37,7 @@ async function verEmprestimoUnico (req,res) {
   try {
     id = req.params.id
     emprestimoBuscado = await serviceEmprestimos.buscaEmprestimoUnico(id)
-    res.status(200).json({emprestimoBuscado})
+    res.status(200).json(emprestimoBuscado)
   }catch(erro){
     codigoHTTP = 500;
     if(erro.statuscode) {codigoHTTP = erro.statuscode}

@@ -1,7 +1,7 @@
 class emprestimo {
   constructor(idUsuario,idExemplar,idFuncionario) {
   this.idUsuario = idUsuario
-  this.idExemplar = idExemplar
+  this.idExemplor = idExemplar
   this.idFuncionario = idFuncionario
   }
 }
