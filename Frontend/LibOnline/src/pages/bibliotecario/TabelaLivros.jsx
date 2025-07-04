@@ -4,6 +4,7 @@ import {
   ChevronRightIcon,
   BookOpenIcon,
   InformationCircleIcon,
+  PlusIcon,
 } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +25,101 @@ const InfoItem = ({ label, value }) => (
   </div>
 );
 
+const FormAdicionarLivro = ({ onClose, onAddLivro }) => {
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const novoLivro = Object.fromEntries(formData.entries());
+
+    // Validação simples
+    if (!novoLivro.titulo || !novoLivro.autor) {
+      alert("Título e Autor são obrigatórios.");
+      return;
+    }
+    onAddLivro(novoLivro);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label
+          htmlFor="titulo"
+          className="block text-sm font-bold text-gray-300 mb-2"
+        >
+          Título do Livro
+        </label>
+        <input
+          type="text"
+          name="titulo"
+          id="titulo"
+          required
+          className="w-full bg-[#2D3748] rounded-lg p-2 focus:ring-2 focus:ring-white focus:outline-none"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="autor"
+          className="block text-sm font-bold text-gray-300 mb-2"
+        >
+          Autor
+        </label>
+        <input
+          type="text"
+          name="autor"
+          id="autor"
+          required
+          className="w-full bg-[#2D3748] rounded-lg p-2 focus:ring-2 focus:ring-white focus:outline-none"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label
+            htmlFor="genero"
+            className="block text-sm font-bold text-gray-300 mb-2"
+          >
+            Gênero
+          </label>
+          <input
+            type="text"
+            name="genero"
+            id="genero"
+            className="w-full bg-[#2D3748] rounded-lg p-2 focus:ring-2 focus:ring-white focus:outline-none"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="editora"
+            className="block text-sm font-bold text-gray-300 mb-2"
+          >
+            Editora
+          </label>
+          <input
+            type="text"
+            name="editora"
+            id="editora"
+            className="w-full bg-[#2D3748] rounded-lg p-2 focus:ring-2 focus:ring-white focus:outline-none"
+          />
+        </div>
+      </div>
+      <div className="flex justify-end gap-4 pt-4">
+        <button
+          type="button"
+          onClick={onClose}
+          className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg cursor-pointer"
+        >
+          Adicionar Livro
+        </button>
+      </div>
+    </form>
+  );
+};
+
 const TabelaLivros = () => {
   const navigate = useNavigate();
 
@@ -38,6 +134,8 @@ const TabelaLivros = () => {
   // Estados da Modal
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
   const [selectedLivro, setSelectedLivro] = useState(null);
+
+  const [isAddModalOpen, setAddModalOpen] = useState(false);
 
   const fetchLivros = async () => {
     try {
@@ -58,7 +156,6 @@ const TabelaLivros = () => {
             exemplares = [...exemplares, { registro: exemplar.numeroRegistro }];
           }
         });
-        console.log(exemplares);
         return {
           id: livro.id,
           titulo: livro.titulo,
@@ -108,6 +205,21 @@ const TabelaLivros = () => {
   const handleCloseInfoModal = () => {
     setInfoModalOpen(false);
     setSelectedLivro(null);
+  };
+
+  const handleOpenAddModal = () => setAddModalOpen(true);
+  const handleCloseAddModal = () => setAddModalOpen(false);
+
+  const handleAddLivro = async (dadosDoNovoLivro) => {
+    try {
+      await apiClient.post("/cadastroLivros", dadosDoNovoLivro);
+      handleCloseAddModal();
+      fetchLivros();
+      alert("Livro adicionado com sucesso!");
+    } catch (err) {
+      alert("Erro ao adicionar livro.");
+      console.error(err);
+    }
   };
 
   if (loading) {
@@ -217,20 +329,29 @@ const TabelaLivros = () => {
           </table>
         </div>
 
-        <nav className="mt-8 flex justify-center items-center gap-4">
+        <div className="mt-8 flex justify-between items-center">
+          <nav className="flex-1 flex justify-center items-center gap-4">
+            <button
+              className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
+              disabled
+            >
+              <ChevronLeftIcon className="h-6 w-6" />
+            </button>
+            <span className="text-xl font-bold px-4 py-2 bg-[#2D3748] rounded-md">
+              1
+            </span>
+            <button className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 cursor-pointer">
+              <ChevronRightIcon className="h-6 w-6" />
+            </button>
+          </nav>
           <button
-            className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 transition-colors disabled:opacity-50 cursor-pointer"
-            disabled
+            onClick={handleOpenAddModal}
+            className="bg-green-600 hover:bg-green-700 font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
           >
-            <ChevronLeftIcon className="h-6 w-6" />
+            <PlusIcon className="h-6 w-6" />
+            Adicionar Livro
           </button>
-          <span className="text-xl font-bold px-4 py-2 bg-[#2D3748] rounded-md">
-            1
-          </span>
-          <button className="p-2 bg-[#4A5568] rounded-md hover:bg-gray-600 transition-colors cursor-pointer">
-            <ChevronRightIcon className="h-6 w-6" />
-          </button>
-        </nav>
+        </div>
       </main>
 
       <Modal
@@ -268,6 +389,16 @@ const TabelaLivros = () => {
             </div>
           </div>
         )}
+      </Modal>
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={handleCloseAddModal}
+        title="Adicionar Novo Livro"
+      >
+        <FormAdicionarLivro
+          onClose={handleCloseAddModal}
+          onAddLivro={handleAddLivro}
+        />
       </Modal>
     </div>
   );
