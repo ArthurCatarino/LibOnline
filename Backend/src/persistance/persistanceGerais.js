@@ -52,4 +52,5 @@ async function listaFuncionarioUnico(id) {
   })
 }
 
+
 module.exports = {listaUsuarios,listaUsuarioUnico,listaFuncionarios,listaFuncionarioUnico}

@@ -15,7 +15,7 @@ router.delete("/deletarLivro/:id", controllerLivros.deletar);
 
 //Rotas de emprestimos
 router.post("/criarEmprestimo", controllerEmprestimo.criar);
-router.put("/editarEmprestimo",controllerEmprestimo.editar)
+router.put("/editarEmprestimo/:id",controllerEmprestimo.editar)
 router.get("/listaEmprestimos", controllerEmprestimo.listar);
 router.get("/buscaEmprestimo/:id", controllerEmprestimo.verEmprestimoUnico);
 router.put("/devolverEmprestimo/:id", controllerEmprestimo.devolver);
