@@ -25,7 +25,7 @@ async function criarEmprestimo (req,res) {
 async function listarEmprestimos (req,res) {
   try {
     emprestimos = await serviceEmprestimos.listarEmprestimos()
-    res.status(200).json({emprestimos})
+    res.status(200).json(emprestimos)
 
   } catch (error) {
     console.log(error)
