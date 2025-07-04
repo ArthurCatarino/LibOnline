@@ -113,17 +113,54 @@ return new Promise((aceito,rejeitado)=>{
   })
 }
 
-async function devolver(id) {
-return new Promise((aceito,rejeitado)=>{
-    const query = "UPDATE libonline.emprestimo SET dataDevolucaoReal=current_timestamp() , statusEmprestimo='devolvido'  WHERE idEmprestimo=?;"
-    db.query(query,id,(error,results)=>{
-      if(error){
-        rejeitado(error)
-        return
+async function devolver(idEmprestimo) {
+  return new Promise((aceito, rejeitado) => {
+    // 1. Atualiza o status do empréstimo
+    const queryUpdateEmprestimo = `
+      UPDATE libonline.emprestimo 
+      SET dataDevolucaoReal = CURRENT_TIMESTAMP, statusEmprestimo = 'devolvido' 
+      WHERE idEmprestimo = ?;
+    `;
+
+    db.query(queryUpdateEmprestimo, [idEmprestimo], (error, resultUpdate) => {
+      if (error) {
+        rejeitado(error);
+        return;
       }
-      aceito(results)
-    })
-  })
+
+      // 2. Busca o idExemplar associado ao empréstimo
+      const queryBuscaExemplar = `
+        SELECT idExemplar FROM libonline.emprestimo WHERE idEmprestimo = ?;
+      `;
+
+      db.query(queryBuscaExemplar, [idEmprestimo], (error, resultadoBusca) => {
+        if (error) {
+          rejeitado(error);
+          return;
+        }
+        
+        const idExemplar = resultadoBusca[0].idExemplar;
+        console.log(idExemplar)
+        // 3. Atualiza o tipo do exemplar para 'disponivel'
+        const queryUpdateExemplar = `
+          UPDATE libonline.exemplar SET tipo = 'disponivel' WHERE idExemplar = ?;
+        `;
+
+        db.query(queryUpdateExemplar, [idExemplar], (error, resultExemplar) => {
+          if (error) {
+            rejeitado(error);
+            return;
+          }
+
+          aceito({
+            mensagem: "Empréstimo devolvido e exemplar marcado como disponível",
+            emprestimo: resultUpdate,
+            exemplar: resultExemplar
+          });
+        });
+      });
+    });
+  });
 }
 
 async function deletar(idEmprestimo) {

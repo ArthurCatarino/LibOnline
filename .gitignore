@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 
 # Arquivo de senhas 
-#*.env
+*.env
 
 # Dependencias 
 #*.json
