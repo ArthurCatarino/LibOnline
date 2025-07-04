@@ -1,74 +1,38 @@
 const persistanceGerais = require("../persistance/persistanceGerais")
 const persistanceEmprestimos = require("../persistance/persistanceEmprestimos")
-
-async function teste(req,res){
-  try {
-    geral = await persistanceGerais.listaExemplares()
-    unico = await persistanceGerais.listaExemplarUnico(2)
-    res.json({geral:geral,unico:unico})
-  }catch(error){
-    console.error(error);
-    res.json("Erro")
-  }
-}
+const serviceEmprestimos = require("../services/servicesEmprestimo")
+const modelEmprestimo = require("../models/modelEmprestimo")
+const emprestimo = require("../models/modelEmprestimo")
 
 async function criarEmprestimo (req,res) {
-
-  let {idFuncionario,idUsuario,idExemplar} = req.body
-  verifica = verificaIds(idFuncionario,idUsuario,idExemplar)
-  if(verifica) {
-    res.status(400).json({messagem:verifica})
-  }
   try {
 
-    funcionario = await persistanceGerais.listaFuncionarioUnico(idFuncionario)
-    if(!funcionario[0]) {
-      res.status(400).json({mensagem:"Bibliotecario invalido"})
-      return
-    }
-
-    usuario = await persistanceGerais.listaUsuarioUnico(idUsuario)
-    if(!usuario[0]) {
-      res.status(400).json({mensagem:"Usuario invalido"})
-      return
-    }
-
-    exemplar = await persistanceGerais.listaExemplarUnico(idExemplar)
-    if(!exemplar[0]) {
-      res.status(400).json({mensagem:"Exemplar invalido"})
-      return
-    }
-    
-    verifica = await persistanceEmprestimos.buscaEmprestimoUsuarioExemplar(idUsuario,idExemplar)
-
-    for(const status of verifica) {
-      if(status.statusEmprestimo == "ativo"){
-        res.status(400).json({mensagem:"O usuario ja tem um emprestimo deste exemplar"})
-        return
-      }
-    }
-
-    await persistanceEmprestimos.criarEmprestimo(idFuncionario,idUsuario,idExemplar)
+    let {idFuncionario,idUsuario,idExemplar} = req.body
+    let emprestimo = new modelEmprestimo(idUsuario,idExemplar,idFuncionario)
+    await serviceEmprestimos.cadastraEmprestimo(emprestimo)
     res.status(200).json({mensagem:"Emprestimo criado "})
-    return
 
   } catch (error) {
+    let codigoHTTP = 500
+    if(error.statuscode) {
+      codigoHTTP = error.statuscode
+    }
     console.log(error)
-    res.status(500).json({mensagem:"Erro ao criar emprestimo",erro:error})
+    res.status(codigoHTTP).json({mensagem:"Erro ao criar emprestimo",erro:error.message})
   }
 }
 
 async function listarEmprestimos (req,res) {
   try {
-
-    emprestimos = await servicesEmprestimos.listaEmprestimos()
-    res.status(200).json(emprestimos)
+    emprestimos = await serviceEmprestimos.listarEmprestimos()
+    res.status(200).json({emprestimos})
 
   } catch (error) {
     console.log(error)
     res.status(500).json({mensagem:"Erro ao listar emprestimos",erro:error})
   }
 }
+
 async function verEmprestimoUnico (req,res) {
   id = req.params.id
   try {
@@ -140,18 +104,6 @@ async function renovarEmprestimo (req,res) {
   }
 }
 
-function verificaIds(idFuncionario,idUsuario,idExemplar) {
-  if(!idFuncionario) {
-    return "IdFuncionario nao pode ser vazio"
-  }
-  if(!idUsuario) {
-    return "idUsuario nao pode ser vazio"
-  } 
-  if(!idExemplar) {
-    return "idExemplar nao pode ser vazio"
-  }  
-}
-
 function verificaEmprestimo(emprestimo) {
   if(!emprestimo){
     return "id invalido"
@@ -162,4 +114,4 @@ function verificaEmprestimo(emprestimo) {
 
 }
 
-module.exports = {criarEmprestimo,verEmprestimoUnico,listarEmprestimos,renovarEmprestimo,deletarEmprestimo,teste,devolverEmprestimo}
+module.exports = {criarEmprestimo,verEmprestimoUnico,listarEmprestimos,renovarEmprestimo,deletarEmprestimo,devolverEmprestimo}

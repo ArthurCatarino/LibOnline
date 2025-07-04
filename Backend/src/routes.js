@@ -5,8 +5,6 @@ const controllerEmprestimo = require("./controllers/controllerEmprestimo");
 const controllerLogin = require("./controllers/controllerLogin");
 const controllerGerais = require("./controllers/controllerGerais");
 
-router.get("/teste", controllerEmprestimo.teste);
-
 //Rotas cadastro de livros
 router.post("/cadastroLivros", controllerLivros.cadastro);
 router.get("/listagemLivros", controllerLivros.listarTodos);

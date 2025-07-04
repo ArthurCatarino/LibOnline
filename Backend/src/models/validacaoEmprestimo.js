@@ -1,9 +1,9 @@
 const Joi = require('joi');
 
 const emprestimoSchema = Joi.object({
-  idUsuario: Joi.int().required(),
-  idLivro: Joi.int().required(),
-  idFuncionario: Joi.int().required()
+  idUsuario: Joi.number().integer().required(),
+  idLivro: Joi.number().integer().required(),
+  idFuncionario: Joi.number().integer().required()
 });
 
 module.exports = emprestimoSchema;

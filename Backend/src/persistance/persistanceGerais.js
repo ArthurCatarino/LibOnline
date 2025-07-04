@@ -78,4 +78,6 @@ async function listaExemplarUnico(id) {
   })
 }
 
+
+
 module.exports = {listaUsuarios,listaUsuarioUnico,listaFuncionarios,listaFuncionarioUnico,listaExemplares,listaExemplarUnico}

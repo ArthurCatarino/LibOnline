@@ -1,54 +1,92 @@
 const db = require("../db")
 
-async function criarEmprestimo(idFuncionario,idUsuario,idExemplar){
-  return new Promise((aceito,rejeitado) => {
-    const query = "INSERT into libonline.emprestimo (idUsuario, idExemplar,idFuncionario, dataEmprestimo, dataDevolucaoPrevista,statusEmprestimo) VALUES(?,?,?,CURRENT_TIMESTAMP,DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 DAY),'ativo');"
-    dados = [idUsuario,idExemplar,idFuncionario]
-    db.query(query,dados,(erro,results)=>{
-      if(erro){
-        rejeitado(erro)
-        return
+async function criarEmprestimo(idFuncionario, idUsuario, idExemplar) {
+  return new Promise((aceito, rejeitado) => {
+    db.getConnection((err, connection) => {
+      if (err) {
+        rejeitado(err);
+        return;
       }
-      aceito(results)
-    })
 
-  })
+      connection.beginTransaction((err) => {
+        if (err) {
+          connection.release();
+          rejeitado(err);
+          return;
+        }
+
+        const queryEmprestimo = `
+          INSERT INTO libonline.emprestimo 
+          (idUsuario, idExemplar, idFuncionario, dataEmprestimo, dataDevolucaoPrevista, statusEmprestimo)
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 DAY), 'ativo');
+        `;
+
+        const dadosEmprestimo = [idUsuario, idExemplar, idFuncionario];
+
+        connection.query(queryEmprestimo, dadosEmprestimo, (err, resultEmprestimo) => {
+          if (err) {
+            return connection.rollback(() => {
+              connection.release();
+              rejeitado(err);
+            });
+          }
+
+          const queryExemplar = `UPDATE libonline.exemplar SET tipo = ? WHERE idExemplar = ?;`;
+          const dadosExemplar = ["emprestado", idExemplar];
+
+          connection.query(queryExemplar, dadosExemplar, (err, resultExemplar) => {
+            if (err) {
+              return connection.rollback(() => {
+                connection.release();
+                rejeitado(err);
+              });
+            }
+
+            connection.commit((err) => {
+              if (err) {
+                return connection.rollback(() => {
+                  connection.release();
+                  rejeitado(err);
+                });
+              }
+
+              connection.release();
+              aceito({ emprestimo: resultEmprestimo, exemplar: resultExemplar });
+            });
+          });
+        });
+      });
+    });
+  });
 }
 
-async function buscaEmprestimoUsuarioExemplar(idUsuario,idExemplar) {
+async function buscaEmprestimoUsuarioExemplar(idExemplar,idUsuario) {
   return new Promise((aceito,rejeitado)=>{
-    let dados = []
-    const query1 = "SELECT statusEmprestimo, e.idLivro FROM libonline.emprestimo natural join libonline.exemplar e WHERE idUsuario=?;"
-    db.query(query1,idUsuario,(error,results)=>{
+    const query1 = "SELECT statusEmprestimo, e.idLivro FROM libonline.emprestimo natural join libonline.exemplar e where idExemplar=? and idUsuario=?;"
+    dados = [idExemplar,idUsuario]
+    db.query(query1,dados,(error,results)=>{
       if(error){
         rejeitado(error)
         return
       }
       aceito(results)
-      
-      for(i in results) {
-        let resposta = {
-          statusEmprestimo:results[0].statusEmprestimo,
-          nomeLivro:null,
-          idLivro:results[0].idLivro
-        }
-        dados.push(resposta)
-    }
-      for(i in dados) {
-      const query2 = "select titulo from libonline.livro where id=?;"
-      db.query(query2,dados[i].idLivro,(error,results)=>{
-        if(error){
-          rejeitado(error)
-          return
-        }
-        aceito(results)
-        dados[i].nomeLivro = results[0].titulo
-        console.log(dados[i])
-      })
-    }
-    })
   })
+})
 }
+
+async function verificaSeTemEmprestimoAtrasado(id) {
+return new Promise((aceito,rejeitado)=>{
+  const query1 = "SELECT statusEmprestimo from libonline.emprestimo WHERE idUsuario=? and statusEmprestimo= 'atrasado';"
+  db.query(query1,id,(error,results)=>{
+    if(error){
+      rejeitado(error)
+      return
+    }
+    aceito(results)
+  })
+})
+}
+
 
 async function listaEmprestimos(){
   return new Promise((aceito,rejeitado)=>{
@@ -115,5 +153,18 @@ return new Promise((aceito,rejeitado)=>{
   })
 }
 
+async function verificaSeExemplarEstaEmprestado(id) {
+  return new Promise((aceito,rejeitado)=>{
+    const query = "select tipo from libonline.exemplar WHERE exemplar.idExemplar=?;"
+    db.query(query,id,(error,results)=>{
+      if(error){
+        rejeitado(error)
+        return
+      }
+      aceito(results)
+    })
+  })
+}
 
-module.exports = {criarEmprestimo,buscaEmprestimoUnico,listaEmprestimos,buscaEmprestimoUsuarioExemplar,devolverEmprestimo,deletarEmprestimo,renovarEmprestimo}
+
+module.exports = {criarEmprestimo,buscaEmprestimoUnico,listaEmprestimos,buscaEmprestimoUsuarioExemplar,devolverEmprestimo,deletarEmprestimo,renovarEmprestimo,verificaSeTemEmprestimoAtrasado,verificaSeExemplarEstaEmprestado}
